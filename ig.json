@@ -9,7 +9,18 @@
     "qa": "qa",
     "specification": "http://build.fhir.org/"
   },
-  "template" : "hl7.cda.template",
+  "template-r3oldnopublishbox" : "hl7.cda.template",
+  "template" : "https://github.com/ahdis/test-template",
+  "extraTemplates": [
+    {
+      "name": "mappings",
+      "description": "Mappings"
+    },
+    {
+      "name": "examples",
+      "description": "Examples"
+    }
+  ],
   "version": "4.0.0",
   "fixed-business-version": "0.0.1",
   "license" : "CC0-1.0",

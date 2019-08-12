@@ -1,0 +1,22 @@
+{
+  "package-id": "hl7.fhir.cda",
+  "title": "CDA-CORE-2.0 (R4)",
+  "introduction": "This FHIR Implementation Guide represents CDA using the FHIR Type Definition Framework",
+  "canonical": "http://hl7.org/fhir/cda",
+  "list": [
+    {
+      "version": "current",
+      "date": "n/a",
+      "desc": "Continuous Integration Build (latest in version control)",
+      "path": "http://build.fhir.org/ig/cda-core-2.0/index.html",
+      "status": "ci-build"
+    },
+    {
+      "version": "dev",
+      "date": "n/a",
+      "desc": "Continuous Integration Build (latest in version control)",
+      "path": "http://build.fhir.org/ig/cda-core-2.0/index.html",
+      "status": "ci-build"
+    }
+  ]
+}
