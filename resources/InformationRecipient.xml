@@ -20,14 +20,14 @@
   <description value="Represents the participant who has transformed a dictated note into text."/>
   <kind value="logical"/>
   <abstract value="false"/>
-  <type value="http://hl7.org/fhir/cda/StructureDefinition/InformationRecipient"/>
+  <type value="InformationRecipient"/>
   <baseDefinition value="http://hl7.org/fhir/cda/StructureDefinition/LogicalElement"/>
   <derivation value="specialization"/>
   <differential>
     <element id="InformationRecipient">
       <path value="InformationRecipient"/>
-      <min value="1"/>
-      <max value="1"/>
+      <min value="0"/>
+      <max value="*"/>
     </element>
     <element id="InformationRecipient.nullFlavor">
       <path value="InformationRecipient.nullFlavor"/>

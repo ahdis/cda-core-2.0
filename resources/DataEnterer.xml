@@ -18,13 +18,13 @@
   <description value="Represents the participant who has transformed a dictated note into text."/>
   <kind value="logical"/>
   <abstract value="false"/>
-  <type value="http://hl7.org/fhir/cda/StructureDefinition/DataEnterer"/>
+  <type value="DataEnterer"/>
   <baseDefinition value="http://hl7.org/fhir/cda/StructureDefinition/LogicalElement"/>
   <derivation value="specialization"/>
   <differential>
     <element id="DataEnterer">
       <path value="DataEnterer"/>
-      <min value="1"/>
+      <min value="0"/>
       <max value="1"/>
     </element>
     <element id="DataEnterer.nullFlavor">
@@ -104,7 +104,7 @@
     </element>
     <element id="DataEnterer.time">
       <path value="DataEnterer.time"/>
-      <min value="1"/>
+      <min value="0"/>
       <max value="1"/>
       <type>
         <code value="http://hl7.org/fhir/cda/StructureDefinition/TS"/>

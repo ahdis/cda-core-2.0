@@ -18,14 +18,14 @@
   <description value="An informant (or source of information) is a person that provides relevant information, such as the parent of a comatose patient who describes the patient's behavior prior to the onset of coma."/>
   <kind value="logical"/>
   <abstract value="false"/>
-  <type value="http://hl7.org/fhir/cda/StructureDefinition/Informant"/>
+  <type value="Informant"/>
   <baseDefinition value="http://hl7.org/fhir/cda/StructureDefinition/LogicalElement"/>
   <derivation value="specialization"/>
   <differential>
     <element id="Informant">
       <path value="Informant"/>
-      <min value="1"/>
-      <max value="1"/>
+      <min value="0"/>
+      <max value="*"/>
     </element>
     <element id="Informant.nullFlavor">
       <path value="Informant.nullFlavor"/>
