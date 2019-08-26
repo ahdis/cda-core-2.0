@@ -10,7 +10,7 @@
     "specification": "http://build.fhir.org/"
   },
   "template-r3oldnopublishbox" : "hl7.cda.template",
-  "template" : "https://github.com/ahdis/test-template",
+  "template": "https://github.com/ahdis/ig-template",
   "extraTemplates": [
     {
       "name": "mappings",
