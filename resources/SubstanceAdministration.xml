@@ -72,6 +72,15 @@
       </type>
       <mustSupport value="true"/>
     </element>
+    <element id="SubstanceAdministration.negationInd">
+      <path value="SubstanceAdministration.negationInd"/>
+      <representation value="xmlAttr"/>
+      <min value="0"/>
+      <max value="1"/>
+      <type>
+        <code value="boolean"/>
+      </type>
+    </element>
     <element id="SubstanceAdministration.realmCode">
       <path value="SubstanceAdministration.realmCode"/>
       <definition value="When valued in an instance, this attribute signals the imposition of realm-specific constraints. The value of this attribute identifies the realm in question"/>
@@ -123,15 +132,6 @@
         <strength value="extensible"/>
         <valueSet value="http://terminology.hl7.org/ValueSet/v3-SubstanceAdministrationActCode"/>
       </binding>
-    </element>
-    <element id="SubstanceAdministration.negationInd">
-      <path value="SubstanceAdministration.negationInd"/>
-      <representation value="xmlAttr"/>
-      <min value="0"/>
-      <max value="1"/>
-      <type>
-        <code value="boolean"/>
-      </type>
     </element>
     <element id="SubstanceAdministration.text">
       <path value="SubstanceAdministration.text"/>
@@ -268,40 +268,8 @@
         <valueSet value="http://terminology.hl7.org/ValueSet/v3-AdministrableDrugForm"/>
       </binding>
     </element>
-    <element id="SubstanceAdministration.consumable">
-      <path value="SubstanceAdministration.consumable"/>
-      <min value="1"/>
-      <max value="1"/>
-      <type>
-        <code value="Element"/>
-      </type>
-    </element>
-    <element id="SubstanceAdministration.consumable.typeCode">
-      <path value="SubstanceAdministration.consumable.typeCode"/>
-      <representation value="xmlAttr"/>
-      <min value="1"/>
-      <max value="1"/>
-      <type>
-        <code value="code"/>
-      </type>
-      <defaultValueCode value="CSM"/>
-      <fixedCode value="CSM"/>
-      <mustSupport value="true"/>
-      <binding>
-        <strength value="required"/>
-        <valueSet value="http://terminology.hl7.org/ValueSet/v3-ParticipationTargetDirect"/>
-      </binding>
-    </element>
-    <element id="SubstanceAdministration.consumable.manufacturedProduct">
-      <path value="SubstanceAdministration.consumable.manufacturedProduct"/>
-      <min value="1"/>
-      <max value="1"/>
-      <type>
-        <code value="http://hl7.org/fhir/cda/StructureDefinition/ManufacturedProduct"/>
-        <profile value="http://hl7.org/fhir/cda/StructureDefinition/ManufacturedProduct"/>
-      </type>
-    </element>
-    <element id="SubstanceAdministration.subject">
+    
+        <element id="SubstanceAdministration.subject">
       <path value="SubstanceAdministration.subject"/>
       <min value="0"/>
       <max value="1"/>
@@ -396,6 +364,40 @@
         <profile value="http://hl7.org/fhir/cda/StructureDefinition/SpecimenRole"/>
       </type>
     </element>
+    <element id="SubstanceAdministration.consumable">
+      <path value="SubstanceAdministration.consumable"/>
+      <min value="1"/>
+      <max value="1"/>
+      <type>
+        <code value="Element"/>
+      </type>
+    </element>
+    <element id="SubstanceAdministration.consumable.typeCode">
+      <path value="SubstanceAdministration.consumable.typeCode"/>
+      <representation value="xmlAttr"/>
+      <min value="1"/>
+      <max value="1"/>
+      <type>
+        <code value="code"/>
+      </type>
+      <defaultValueCode value="CSM"/>
+      <fixedCode value="CSM"/>
+      <mustSupport value="true"/>
+      <binding>
+        <strength value="required"/>
+        <valueSet value="http://terminology.hl7.org/ValueSet/v3-ParticipationTargetDirect"/>
+      </binding>
+    </element>
+    <element id="SubstanceAdministration.consumable.manufacturedProduct">
+      <path value="SubstanceAdministration.consumable.manufacturedProduct"/>
+      <min value="1"/>
+      <max value="1"/>
+      <type>
+        <code value="http://hl7.org/fhir/cda/StructureDefinition/ManufacturedProduct"/>
+        <profile value="http://hl7.org/fhir/cda/StructureDefinition/ManufacturedProduct"/>
+      </type>
+    </element>
+
     <element id="SubstanceAdministration.performer">
       <path value="SubstanceAdministration.performer"/>
       <min value="0"/>
@@ -592,145 +594,8 @@
       <min value="0"/>
       <max value="*"/>
       <type>
-        <code value="Element"/>
-      </type>
-    </element>
-    <element id="SubstanceAdministration.entryRelationship.typeCode">
-      <path value="SubstanceAdministration.entryRelationship.typeCode"/>
-      <representation value="xmlAttr"/>
-      <min value="1"/>
-      <max value="1"/>
-      <type>
-        <code value="code"/>
-      </type>
-      <mustSupport value="true"/>
-    </element>
-    <element id="SubstanceAdministration.entryRelationship.inversionInd">
-      <path value="SubstanceAdministration.entryRelationship.inversionInd"/>
-      <representation value="xmlAttr"/>
-      <min value="0"/>
-      <max value="1"/>
-      <type>
-        <code value="boolean"/>
-      </type>
-    </element>
-    <element id="SubstanceAdministration.entryRelationship.contextConductionInd">
-      <path value="SubstanceAdministration.entryRelationship.contextConductionInd"/>
-      <representation value="xmlAttr"/>
-      <min value="1"/>
-      <max value="1"/>
-      <type>
-        <code value="boolean"/>
-      </type>
-      <defaultValueBoolean value="true"/>
-      <mustSupport value="true"/>
-    </element>
-    <element id="SubstanceAdministration.entryRelationship.sequenceNumber">
-      <path value="SubstanceAdministration.entryRelationship.sequenceNumber"/>
-      <min value="0"/>
-      <max value="1"/>
-      <type>
-        <code value="http://hl7.org/fhir/cda/StructureDefinition/INT"/>
-        <profile value="http://hl7.org/fhir/cda/StructureDefinition/INT"/>
-      </type>
-    </element>
-    <element id="SubstanceAdministration.entryRelationship.negationInd">
-      <path value="SubstanceAdministration.entryRelationship.negationInd"/>
-      <representation value="xmlAttr"/>
-      <min value="0"/>
-      <max value="1"/>
-      <type>
-        <code value="boolean"/>
-      </type>
-    </element>
-    <element id="SubstanceAdministration.entryRelationship.seperatableInd">
-      <path value="SubstanceAdministration.entryRelationship.seperatableInd"/>
-      <min value="0"/>
-      <max value="1"/>
-      <type>
-        <code value="http://hl7.org/fhir/cda/StructureDefinition/BL"/>
-        <profile value="http://hl7.org/fhir/cda/StructureDefinition/BL"/>
-      </type>
-    </element>
-    <element id="SubstanceAdministration.entryRelationship.observation">
-      <path value="SubstanceAdministration.entryRelationship.observation"/>
-      <min value="0"/>
-      <max value="1"/>
-      <type>
-        <code value="http://hl7.org/fhir/cda/StructureDefinition/Observation"/>
-        <profile value="http://hl7.org/fhir/cda/StructureDefinition/Observation"/>
-      </type>
-    </element>
-    <element id="SubstanceAdministration.entryRelationship.regionOfInterest">
-      <path value="SubstanceAdministration.entryRelationship.regionOfInterest"/>
-      <min value="0"/>
-      <max value="1"/>
-      <type>
-        <code value="http://hl7.org/fhir/cda/StructureDefinition/RegionOfInterest"/>
-        <profile value="http://hl7.org/fhir/cda/StructureDefinition/RegionOfInterest"/>
-      </type>
-    </element>
-    <element id="SubstanceAdministration.entryRelationship.observationMedia">
-      <path value="SubstanceAdministration.entryRelationship.observationMedia"/>
-      <min value="0"/>
-      <max value="1"/>
-      <type>
-        <code value="http://hl7.org/fhir/cda/StructureDefinition/ObservationMedia"/>
-        <profile value="http://hl7.org/fhir/cda/StructureDefinition/ObservationMedia"/>
-      </type>
-    </element>
-    <element id="SubstanceAdministration.entryRelationship.substanceAdministration">
-      <path value="SubstanceAdministration.entryRelationship.substanceAdministration"/>
-      <min value="0"/>
-      <max value="1"/>
-      <type>
-        <code value="http://hl7.org/fhir/cda/StructureDefinition/SubstanceAdministration"/>
-        <profile value="http://hl7.org/fhir/cda/StructureDefinition/SubstanceAdministration"/>
-      </type>
-    </element>
-    <element id="SubstanceAdministration.entryRelationship.supply">
-      <path value="SubstanceAdministration.entryRelationship.supply"/>
-      <min value="0"/>
-      <max value="1"/>
-      <type>
-        <code value="http://hl7.org/fhir/cda/StructureDefinition/Supply"/>
-        <profile value="http://hl7.org/fhir/cda/StructureDefinition/Supply"/>
-      </type>
-    </element>
-    <element id="SubstanceAdministration.entryRelationship.procedure">
-      <path value="SubstanceAdministration.entryRelationship.procedure"/>
-      <min value="0"/>
-      <max value="1"/>
-      <type>
-        <code value="http://hl7.org/fhir/cda/StructureDefinition/Procedure"/>
-        <profile value="http://hl7.org/fhir/cda/StructureDefinition/Procedure"/>
-      </type>
-    </element>
-    <element id="SubstanceAdministration.entryRelationship.encounter">
-      <path value="SubstanceAdministration.entryRelationship.encounter"/>
-      <min value="0"/>
-      <max value="1"/>
-      <type>
-        <code value="http://hl7.org/fhir/cda/StructureDefinition/Encounter"/>
-        <profile value="http://hl7.org/fhir/cda/StructureDefinition/Encounter"/>
-      </type>
-    </element>
-    <element id="SubstanceAdministration.entryRelationship.organizer">
-      <path value="SubstanceAdministration.entryRelationship.organizer"/>
-      <min value="0"/>
-      <max value="1"/>
-      <type>
-        <code value="http://hl7.org/fhir/cda/StructureDefinition/Organizer"/>
-        <profile value="http://hl7.org/fhir/cda/StructureDefinition/Organizer"/>
-      </type>
-    </element>
-    <element id="SubstanceAdministration.entryRelationship.act">
-      <path value="SubstanceAdministration.entryRelationship.act"/>
-      <min value="0"/>
-      <max value="1"/>
-      <type>
-        <code value="http://hl7.org/fhir/cda/StructureDefinition/Act"/>
-        <profile value="http://hl7.org/fhir/cda/StructureDefinition/Act"/>
+        <code value="http://hl7.org/fhir/cda/StructureDefinition/EntryRelationship"/>
+        <profile value="http://hl7.org/fhir/cda/StructureDefinition/EntryRelationship"/>
       </type>
     </element>
     <element id="SubstanceAdministration.reference">

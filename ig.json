@@ -7,7 +7,7 @@
     "temp": "temp",
     "output": "output",
     "qa": "qa",
-    "specification": "http://build.fhir.org/"
+    "specification": "http:/hl7.org/fhir/r4"
   },
   "template-r3oldnopublishbox" : "hl7.cda.template",
   "template": "https://github.com/ahdis/ig-template",
