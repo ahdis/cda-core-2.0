@@ -1,0 +1,40 @@
+<StructureDefinition xmlns="http://hl7.org/fhir">
+  <id value="Base"/>
+  <text>
+    <status value="generated"/>
+    <div xmlns="http://www.w3.org/1999/xhtml">
+      <p>Defines a Base. The FHIR StructureDefintion Element has an id attribute and an extension element which have in V3 another meaning.</p>
+      <p>The V3 datatype II (Instance Identifier) contains an attribute @extension.</p> 
+      <p>V3 classes like ClinicalDocument, Act have an id Element.</p> 
+    </div>
+  </text>
+  <url value="http://hl7.org/fhir/StructureDefinition/Base"/>
+  <name value="Base"/>
+  <title value="Base"/>
+  <status value="active"/>
+  <experimental value="false"/>
+  <publisher value="HL7"/>
+  <description value="Defines a Base. The FHIR StructureDefintion Element has an id attribute and an extension element which have in V3 another meaning."/>
+  <kind value="complex-type"/>
+  <abstract value="true"/>
+  <type value="Base"/>
+  <snapshot>
+    <element id="Base">
+      <path value="Base"/>
+      <min value="0"/>
+      <max value="*"/>
+      <base>
+        <path value="Base"/>
+        <min value="0"/>
+        <max value="*"/>
+      </base>
+    </element>
+  </snapshot>
+  <differential>
+    <element id="Base">
+      <path value="Base"/>
+      <min value="0"/>
+      <max value="*"/>
+    </element>
+  </differential>
+</StructureDefinition>
