@@ -15,7 +15,6 @@ uses "http://hl7.org/fhir/StructureDefinition/Practitioner" alias Practitioner a
 uses "http://hl7.org/fhir/StructureDefinition/Organization" alias Organization as produced
 
 imports "http://hl7.org/fhir/cda/mapping/cdaToFhirTypes"
-imports "http://hl7.org/fhir/cda/mapping/ccdaDocumentToFhir"
 
 group ClinicalDocumentBundle
 	input source : ClinicalDocument as source
@@ -27,6 +26,17 @@ group ClinicalDocumentBundle
 	composition: for source make target.entry as e first, e.resource = create("Composition") as composition then ClinicalDocumentComposition(source, composition, target)
 
 endgroup
+
+group CDASections
+	input source : ClinicalDocument as source
+	input component as source
+	input patient: Patient as source
+	input target: Composition as target
+	input bundle: Bundle as target
+
+	section: for component.section as srcSection make target.section as tgtSection then ClinicalDocumentSection(srcSection, patient, tgtSection)
+endgroup
+
 
 group ClinicalDocumentComposition
 	input source : ClinicalDocument as source
@@ -45,7 +55,8 @@ group ClinicalDocumentComposition
 		
 		component: for source.component as component then {
 			body: for component.structuredBody as body then {
-				bodyComponent: for body.component as component then CCDASections(source, component, patientResource, target, bundle)
+				// bodyComponent: for body.component as component then CCDASections(source, component, patientResource, target, bundle)
+				bodyComponent: for body.component as component then CDASections(source, component, patientResource, target, bundle)
 			}
 		}		
 	} 
