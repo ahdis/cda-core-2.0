@@ -115,7 +115,6 @@ group for types EDstring extends STstring
 	input target: string as target
 endgroup
 
-
 group for types CSCode extends Any
   input source : CS as source 
   input target : code as target 
