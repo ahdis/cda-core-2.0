@@ -23,6 +23,8 @@ group ClinicalDocumentBundle
 	id: for source.id make target.identifier
 	type: for source make target.type = "document"
 
+	effectiveTime: for source.effectiveTime make target.timestamp
+
 	composition: for source make target.entry as e first, e.resource = create("Composition") as composition then ClinicalDocumentComposition(source, composition, target)
 
 endgroup
