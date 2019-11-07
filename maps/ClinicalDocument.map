@@ -49,6 +49,7 @@ group ClinicalDocumentComposition
 	setID: for source.setId make target.identifier
 	status: for source make target.status = "final"
 	code: for source.code make target.type
+	title: for source.title as t make target.title = (t.dataString)
 	
 	recordTarget: for source.recordTarget as recordTarget make bundle.entry as e, e.resource = create("Patient") as patientResource then {
 		subject: for recordTarget.patientRole as patient make target.subject = reference(patientResource) then ClinicalDocumentPatientRole(patient, patientResource, bundle)
@@ -71,7 +72,6 @@ group ClinicalDocumentComposition
 		//authorTime: for srcAuthor.time ...
 	}
 	
-	title: for source.title as t make target.title
 	confidentialityCode: for source.confidentialityCode make target.confidentiality
 
 	legalAuthenticator: for source.legalAuthenticator as legalAuth make bundle.entry as e, e.resource = create("Practitioner") as practitioner then {
