@@ -35,7 +35,8 @@ group for types II extends Any
 	input target: Identifier as target
 
   root1: for source.root as r where source.extension.exists() make target.system = translate(r, "http://hl7.org/fhir/ConceptMap/special-oid2uri", "uri")  
-  root2: for source.root as r where source.extension.empty() make target.system = "urn:ietf:rfc:3986", target.value = append("urn:oid:", r)
+  rootuuid: for source.root as r where source.extension.empty() and source.root.matches('[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}')  make target.value = ('urn:uuid:' + r.lower())
+  rootoid: for source.root as r where source.extension.empty() and source.root.contains('.') make target.system = "urn:ietf:rfc:3986", target.value = append("urn:oid:", r)
   extension: for source.extension as e make target.value = e
   assigningAuthorityName: for source.assigningAuthorityName as s make target.assigner as a, a.display = s
   
