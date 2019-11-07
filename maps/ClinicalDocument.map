@@ -177,7 +177,7 @@ group ClinicalDocumentOrganization
 	input target: Organization as target
 	
 	id: for source.id make target.identifier
-	name: for source.name make target.name
+	name: for source.name as v make target.name = (v.other)
 	telecom: for source.telecom make target.telecom
 	addr: for source.addr make target.address
 	
@@ -208,7 +208,7 @@ group ClinicalDocumentPatientRole
 	organization: for source.providerOrganization as org make bundle.entry as e, e.resource = create("Organization") as organization then {
 		reference: for org make target.managingOrganization = reference(organization)
 		id: for org.id make organization.identifier
-		name: for org.name make organization.name
+		name: for org.name as v make organization.name = (v.other)
 		telecom: for org.telecom make organization.telecom
 		addr: for org.addr make organization.address
 	}
