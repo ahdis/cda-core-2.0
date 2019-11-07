@@ -134,7 +134,7 @@ group ClinicalDocumentSection
 	input target as target
 
 	templateID: for source.templateId as template then TemplateID(template, target)
-	title: for source.title make target.title
+	title: for source.title as t make target.title = (t.dataString)
 	code: for source.code make target.code
 	text: for source.text as cdaText make target.text as fhirText then {
 		narrativestatus: for cdaText make fhirText.status = 'generated'
