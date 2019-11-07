@@ -65,7 +65,7 @@
         <assignedCustodian>
             <representedCustodianOrganization>
                 <id extension="99999999" root="2.16.840.1.113883.4.6"/>
-               <!-- <name>Good Health Clinic</name> -->
+                <name>Good Health Clinic</name>
                 <telecom use="WP" value="tel: +1-(410)555-5544"/>
                 <addr use="WP">
                     <streetAddressLine> 8333 Clairemont Blvd</streetAddressLine>
@@ -419,7 +419,7 @@ Medications Narrative
                             <routeCode displayName="PO"/>
                             <doseQuantity/>
                             <doseQuantity unit="Tablet(s)" value="1"/>
-                            <doseQuantity unit="MG" value="300-30"/>
+                            <doseQuantity unit="MG" value="300"/>
                             <consumable>
                                 <manufacturedProduct classCode="MANU">
                                     <templateId root="2.16.840.1.113883.10.20.22.4.23"/>
@@ -540,7 +540,6 @@ Immunizations Narrative
                             <templateId root="2.16.840.1.113883.10.20.22.4.52"/>
                             <id nullFlavor="NA"/>
                             <statusCode code="completed"/>
-                            <effectiveTime/>
                             <consumable>
                                 <manufacturedProduct classCode="MANU">
                                     <!-- Immunization Medication Information template -->
