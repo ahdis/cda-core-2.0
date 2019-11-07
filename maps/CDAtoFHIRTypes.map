@@ -171,10 +171,10 @@ group for types ENHumanName extends Any
 	input source: EN as source
 	input target: HumanName as target
 	
-	family: for source.family as v make target.family = cast(v, "string")
-	given: for source.given as v make target.given = cast(v, "string")
-	prefix: for source.prefix as v make target.prefix = cast(v, "string")
-	suffix: for source.suffix as v make target.suffix = cast(v, "string")
+	family: for source.family as v make target.family = (v.dataString)
+	given: for source.given as v make target.given = (v.dataString)
+	prefix: for source.prefix as v make target.prefix = (v.dataString)
+	suffix: for source.suffix as v make target.suffix = (v.dataString)
 	use: for source.use as c make target.use = translate(c, 'http://hl7.org/fhir/ConceptMap/cm-name-use-v3', 'code')
 	validTime: for source.validTime make target.period
 	
