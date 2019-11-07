@@ -184,12 +184,15 @@ group for types ADAddress extends Any
 	input source: AD as source
 	input target: Address as target
 	
-	country: for source.country as v make target.country = cast(v, "string")
-	state: for source.state as v make target.state = cast(v, "string")
-	county: for source.county as v make target.district = cast(v, "string")
-	city: for source.city as v make target.city = cast(v, "string")
-	postalCode: for source.postalCode as v make target.postalCode = cast(v, "string")
-	streetAddress: for source.streetAddressLine as v make target.line = cast(v, "string")
+	country: for source.country as v make target.country = (v.dataString)
+	state: for source.state as v make target.state = (v.dataString)
+	county: for source.county as v make target.district = (v.dataString)
+	city: for source.city as v make target.city = (v.dataString)
+	postalCode: for source.postalCode as v make target.postalCode = (v.dataString)
+	streetAddress: for source.streetAddressLine as v make target.line = (v.dataString)
+	streetName: for source.streetName as v make target.line = (v.dataString)
+	houseNumber: for source.houseNumber as v make target.line = (v.dataString)
+
 	use: for source.use as c make target.use = translate(c, 'http://hl7.org/fhir/ConceptMap/cm-address-use-v3', 'code')
 	useablePeriod: for source.useablePeriod make target.period
 	
