@@ -202,7 +202,15 @@ group for types TELContactPoint extends Any
 	input source: TEL as source
 	input target: ContactPoint as target
 	
-	value: for source.value as v make target.value = cast(v, "string")
+	valuetel: for source.value as v where (source.value.startsWith('tel:')) make target.value = (v.substring(4)), target.system='phone'
+	valuefax: for source.value as v where (source.value.startsWith('fax:')) make target.value = (v.substring(4)), target.system='fax'
+	valuemail: for source.value as v where (source.value.startsWith('mailto:')) make target.value = (v.substring(7)), target.system='email'
+	valuehttp: for source.value as v where (source.value.startsWith('http:')) make target.value = v, target.system='url'
+	usehome: for source.use where (source.use.startsWith('H')) make target.use = 'home'
+	usework: for source.use where (source.use='WP' or source.use='DIR' or source.use='PUB') make target.use = 'work'
+	usebad: for source.use where (source.use='BAD') make target.use = 'old'
+	usetmp: for source.use where (source.use='TMP') make target.use = 'temp'
+	usemobile: for source.use where (source.use='MC') make target.use = 'mobile'
 	useablePeriod: for source.useablePeriod make target.period
 	//use: for source.use as c make target.use = translate(c, 'http://hl7.org/fhir/ConceptMap/cm-telecom-use-v3', 'code')
 endgroup
