@@ -21,6 +21,7 @@
   <snapshot>
     <element id="Base">
       <path value="Base"/>
+      <definition value="Base for Logical Models and Element"/>
       <min value="0"/>
       <max value="*"/>
       <base>
@@ -33,6 +34,7 @@
   <differential>
     <element id="Base">
       <path value="Base"/>
+      <definition value="Base for Logical Models and Element"/>
       <min value="0"/>
       <max value="*"/>
     </element>
