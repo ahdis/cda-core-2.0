@@ -67,10 +67,20 @@ group ClinicalDocumentComposition
 	encompassingEncounter: for source.componentOf as comp make bundle.entry as e, e.resource = create("Encounter") as encounter then {
 		srcEncounter: for comp.encompassingEncounter as srcEnc make target.encounter = reference(encounter) then ClinicalDocumentEncounter(srcEnc, bundle, encounter)
 	}
+	
+
 	effectiveTime: for source.effectiveTime make target.date
 
 	author: for source.author as srcAuthor make bundle.entry as e, e.resource = create("Practitioner") as practitioner then {
-		author: for srcAuthor.assignedAuthor as assignedAuthor make target.author = reference(practitioner) then ClinicalDocumentAuthorPractitioner(assignedAuthor, practitioner)
+		author: for srcAuthor.assignedAuthor as assignedAuthor make target.author = reference(practitioner) then {
+			id: for assignedAuthor.id make practitioner.identifier
+			addr: for assignedAuthor.addr make practitioner.address
+			telecom: for assignedAuthor.telecom make practitioner.telecom	
+			assignedPerson: for assignedAuthor.assignedPerson as person then {
+				name: for person.name make practitioner.name
+			}
+			representedOrganization: for assignedAuthor.representedOrganization as srcOrg make bundle.entry as e2, e2.resource = create("Organization") as organization, target.author = reference(organization) then ClinicalDocumentOrganization(srcOrg, organization)
+		}
 		//authorTime: for srcAuthor.time ...
 	}
 	
@@ -143,21 +153,6 @@ group ClinicalDocumentSection
 		narrativeText: for cdaText as t make fhirText.div = t
 	}
 	section: for source.section as srcSection make target.section as tgtSection then ClinicalDocumentSection(srcSection, patient, tgtSection)	
-endgroup
-
-
-group ClinicalDocumentAuthorPractitioner
-	input source: AssignedAuthor as source
-	input target: Practitioner as target
-	
-	id: for source.id make target.identifier
-	addr: for source.addr make target.address
-	telecom: for source.telecom make target.telecom
-	
-	assignedPerson: for source.assignedPerson as person then {
-		name: for person.name make target.name
-	}
-	
 endgroup
 
 group ClinicalDocumentEntityPractitioner
