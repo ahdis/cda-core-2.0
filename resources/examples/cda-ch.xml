@@ -44,7 +44,7 @@ History:
 	<effectiveTime value="201710031733+0100"/>
 
 	<!-- Confidentiality code according to the Swiss EPR XDS.b metadata. -->
-	<!--<confidentialityCode code="17621005" codeSystem="2.16.840.1.113883.6.96" codeSystemName="SNOMED CT" displayName="Normally accessible"/>-->
+	<confidentialityCode code="17621005" codeSystem="2.16.840.1.113883.6.96" codeSystemName="SNOMED CT" displayName="Normally accessible"/>
 
 	<!-- Document code according to CDA-CH v2.0. -->
 	<languageCode code="de-CH"/>
