@@ -30,7 +30,7 @@ group Any() {
 
 group II(source source : II, target target : Identifier) extends Any <<types>> {
   source.root as r where source.extension.exists() -> target.system = translate(r, 'http://hl7.org/fhir/ConceptMap/special-oid2uri', 'uri') "root1";
-  source.root as r where source.extension.empty() and source.root.matches('[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}') -> target.value = ("'urn:uuid:' + r.lower()") "rootuuid";
+  source.root as r where source.extension.empty() and source.root.matches('[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}') -> target.value = ('urn:uuid:' + r.lower()) "rootuuid";
   source.root as r where source.extension.empty() and source.root.contains('.') ->  target.system = 'urn:ietf:rfc:3986',  target.value = append('urn:oid:', r) "rootoid";
   source.extension as e -> target.value = e;
   source.assigningAuthorityName as s ->  target.assigner as a,  a.display = s; // there's no equivalent for displayable in FHIR - and it probably will never matter, but if it does, it might map to Identifier.use.
@@ -111,31 +111,31 @@ group CDCodeableConcept(source source : CD, target target : CodeableConcept) ext
 }
 
 group ENHumanName(source source : EN, target target : HumanName) extends Any <<types>> {
-  source.family as v -> target.family = ("v.dataString");
-  source.given as v -> target.given = ("v.dataString");
-  source.prefix as v -> target.prefix = ("v.dataString");
-  source.suffix as v -> target.suffix = ("v.dataString");
+  source.family as v -> target.family = (v.dataString);
+  source.given as v -> target.given = (v.dataString);
+  source.prefix as v -> target.prefix = (v.dataString);
+  source.suffix as v -> target.suffix = (v.dataString);
   source.use as c -> target.use = translate(c, 'http://hl7.org/fhir/ConceptMap/cm-name-use-v3', 'code');
   source.validTime -> target.period;
 }
 
 group ADAddress(source source : AD, target target : Address) extends Any <<types>> {
-  source.country as v -> target.country = ("v.dataString");
-  source.state as v -> target.state = ("v.dataString");
-  source.county as v -> target.district = ("v.dataString");
-  source.city as v -> target.city = ("v.dataString");
-  source.postalCode as v -> target.postalCode = ("v.dataString");
-  source.streetAddressLine as v -> target.line = ("v.dataString") "streetAddress";
-  source.streetName as v -> target.line = ("v.dataString");
-  source.houseNumber as v -> target.line = ("v.dataString");
+  source.country as v -> target.country = (v.dataString);
+  source.state as v -> target.state = (v.dataString);
+  source.county as v -> target.district = (v.dataString);
+  source.city as v -> target.city = (v.dataString);
+  source.postalCode as v -> target.postalCode = (v.dataString);
+  source.streetAddressLine as v -> target.line = (v.dataString) "streetAddress";
+  source.streetName as v -> target.line = (v.dataString);
+  source.houseNumber as v -> target.line = (v.dataString);
   source.use as c -> target.use = translate(c, 'http://hl7.org/fhir/ConceptMap/cm-address-use-v3', 'code');
   source.useablePeriod -> target.period;
 }
 
 group TELContactPoint(source source : TEL, target target : ContactPoint) extends Any <<types>> {
-  source.value as v where (source.value.startsWith('tel:')) ->  target.value = ("v.substring(4)"),  target.system = 'phone' "valuetel";
-  source.value as v where (source.value.startsWith('fax:')) ->  target.value = ("v.substring(4)"),  target.system = 'fax' "valuefax";
-  source.value as v where (source.value.startsWith('mailto:')) ->  target.value = ("v.substring(7)"),  target.system = 'email' "valuemail";
+  source.value as v where (source.value.startsWith('tel:')) ->  target.value = (v.substring(4)),  target.system = 'phone' "valuetel";
+  source.value as v where (source.value.startsWith('fax:')) ->  target.value = (v.substring(4)),  target.system = 'fax' "valuefax";
+  source.value as v where (source.value.startsWith('mailto:')) ->  target.value = (v.substring(7)),  target.system = 'email' "valuemail";
   source.value as v where (source.value.startsWith('http:')) ->  target.value = v,  target.system = 'url' "valuehttp";
   source.use where (source.use.startsWith('H')) -> target.use = 'home' "usehome";
   source.use where ((source.use = 'WP') or (source.use = 'DIR') or (source.use = 'PUB')) -> target.use = 'work' "usework";

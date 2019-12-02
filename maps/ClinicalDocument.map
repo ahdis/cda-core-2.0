@@ -31,13 +31,13 @@ group ClinicalDocumentComposition(source source : ClinicalDocument, target targe
   source.setId -> target.identifier "setID";
   source -> target.status = 'final' "status";
   source.code -> target.type;
-  source.title as t -> target.title = ("t.dataString");
+  source.title as t -> target.title = (t.dataString);
   source.recordTarget as recordTarget ->  bundle.entry as e,  e.resource = create('Patient') as patientResource then {
     recordTarget.patientRole as patient -> target.subject = reference(patientResource) then ClinicalDocumentPatientRole(patient, patientResource, bundle) "subject";
     source.component as component then {
       component.structuredBody as body then {
- // bodyComponent: for body.component as component then CCDASections(source, component, patientResource, target, bundle)        body.component as component then CDASections(source, component, patientResource, target, bundle) "bodyComponent";
-      } "body"; // bodyComponent: for body.component as component then CCDASections(source, component, patientResource, target, bundle)
+        body.component as component then CDASections(source, component, patientResource, target, bundle) "bodyComponent";
+      } "body";
     };
   };
   source.componentOf as comp ->  bundle.entry as e,  e.resource = create('Encounter') as encounter then {
@@ -91,7 +91,7 @@ group ClinicalDocumentComposition(source source : ClinicalDocument, target targe
 
 group ClinicalDocumentSection(source source : Section, source patient : Patient, target target) {
   source.templateId as template then TemplateID(template, target) "templateID";
-  source.title as t -> target.title = ("t.dataString");
+  source.title as t -> target.title = (t.dataString);
   source.code -> target.code;
   source.text as cdaText -> target.text as fhirText then {
     cdaText -> fhirText.status = 'generated' "narrativestatus";
@@ -111,7 +111,7 @@ group ClinicalDocumentEntityPractitioner(source source : AssignedEntity, target 
 
 group ClinicalDocumentOrganization(source source : CustodianOrganization, target target : Organization) {
   source.id -> target.identifier;
-  source.name as v -> target.name = ("v.other");
+  source.name as v -> target.name = (v.other);
   source.telecom -> target.telecom;
   source.addr -> target.address;
 }
@@ -133,7 +133,7 @@ group ClinicalDocumentPatientRole(source source : PatientRole, target target : P
   source.providerOrganization as org ->  bundle.entry as e,  e.resource = create('Organization') as organization then {
     org -> target.managingOrganization = reference(organization) "reference";
     org.id -> organization.identifier;
-    org.name as v -> organization.name = ("v.other");
+    org.name as v -> organization.name = (v.other);
     org.telecom -> organization.telecom;
     org.addr -> organization.address;
   } "organization";

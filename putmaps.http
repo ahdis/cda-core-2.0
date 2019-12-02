@@ -1,0 +1,67 @@
+
+@host = http://localhost:8080/r4
+
+
+
+### CDA TO FHIR
+
+### POST MAP
+
+POST {{host}}/StructureMap HTTP/1.1
+Accept: application/fhir+xml;fhirVersion=4.0
+Content-Type: text/fhir-mapping
+
+< ./maps/CDAtoFHIRTypes.map
+
+
+### POST MAP
+
+POST {{host}}/StructureMap HTTP/1.1
+Accept: application/fhir+xml;fhirVersion=4.0
+Content-Type: text/fhir-mapping
+
+< ./maps/ClinicalDocument.map
+
+
+### Transform ClinicalDocument
+
+POST {{host}}/StructureMap/$transform?source=http://hl7.org/fhir/cda/mapping/ClinicalDocumentToFHIR
+Accept: application/fhir+xml;fhirVersion=4.0
+Content-Type: application/fhir+xml;fhirVersion=4.0
+
+< ./resources/examples/cda-ch.xml
+
+
+### Transform ClinicalDocument
+
+POST {{host}}/StructureMap/$transform?source=http://hl7.org/fhir/cda/mapping/ClinicalDocumentToFHIR
+Accept: application/fhir+xml;fhirVersion=4.0
+Content-Type: application/fhir+xml;fhirVersion=4.0
+
+< /Users/oliveregger/Documents/github/hl7ch-cda/projects/eHealthSuisse/eMedikation/v1.0/2-7-MedicationCard.xml
+
+
+oder curl:
+curl --request POST \
+  --url 'http://localhost:8080/r4/StructureMap/$transform?source=http%3A%2F%2Fhl7.org%2Ffhir%2Fcda%2Fmapping%2FClinicalDocumentToFHIR' \
+  --header 'accept: application/fhir+xml;fhirVersion=4.0' \
+  --header 'content-type: application/fhir+xml;fhirVersion=4.0' \
+  -d @/Users/oliveregger/Documents/github/hl7ch-cda/projects/eHealthSuisse/eMedikation/v1.0/2-7-MedicationCard.xml > /Users/oliveregger/Documents/github/ch-emed/examples/bundle/2-7-MedicationCard-FHIR.xml
+
+
+### FHIR to CDA
+
+POST {{host}}/StructureMap HTTP/1.1
+Accept: application/fhir+xml;fhirVersion=4.0
+Content-Type: text/fhir-mapping
+
+< ./maps/Bundle.map
+
+### POST MAP
+
+POST {{host}}/StructureMap HTTP/1.1
+Accept: application/fhir+xml;fhirVersion=4.0
+Content-Type: text/fhir-mapping
+
+< ./maps/FHIRtoCDATypes.map
+
