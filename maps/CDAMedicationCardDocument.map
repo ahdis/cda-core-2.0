@@ -1,0 +1,91 @@
+map "http://hl7.org/fhir/cda/mapping/CDAMedicationCardDocument" = "CDA MedicationCardDocument to FHIR"
+
+uses "http://hl7.org/fhir/cda/StructureDefinition/ClinicalDocument" alias ClinicalDocument as source
+uses "http://hl7.org/fhir/cda/StructureDefinition/AssignedAuthor" alias AssignedAuthor as queried
+uses "http://hl7.org/fhir/cda/StructureDefinition/AssignedEntity" alias AssignedEntity as queried
+uses "http://hl7.org/fhir/cda/StructureDefinition/CustodianOrganization" alias CustodianOrganization as queried
+uses "http://hl7.org/fhir/cda/StructureDefinition/Section" alias Section as queried
+uses "http://hl7.org/fhir/cda/StructureDefinition/PatientRole" alias PatientRole as queried
+uses "http://hl7.org/fhir/cda/StructureDefinition/SubstanceAdministration" alias SubstanceAdministration as source
+
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
+uses "http://hl7.org/fhir/StructureDefinition/Composition" alias Composition as produced
+uses "http://hl7.org/fhir/StructureDefinition/Patient" alias Patient as produced
+uses "http://hl7.org/fhir/StructureDefinition/Practitioner" alias Practitioner as produced
+uses "http://hl7.org/fhir/StructureDefinition/Organization" alias Organization as produced
+uses "http://hl7.org/fhir/StructureDefinition/MedicationStatement" alias Organization as produced
+
+imports "http://hl7.org/fhir/cda/mapping/cdaToFhirTypes"
+imports "http://hl7.org/fhir/cda/mapping/ClinicalDocumentHeaderToFHIR"
+
+group ClinicalDocumentBundle(source cda : ClinicalDocument, target bundle : Bundle) extends ClinicalDocumentBundleHeader {
+  cda ->  bundle.entry as e first,  e.resource = create('Composition') as composition, 
+             bundle.entry as e2, e2.resource = create('Patient') as patient 
+             then {
+                cda then ClinicalDocumentComposition(cda, composition, patient, bundle) "composition";
+                cda.component as component then {
+                  component.structuredBody as body then {
+                    body.component as component then CDASections(cda, component, patient, composition, bundle) "bodyComponent";
+                  } "body";
+                } "component";
+             } "then";
+}
+
+group SubstanceAdministrationMedicationStatement(source section : Section, source source : SubstanceAdministration, source patient : Patient, target medicationStatement : MedicationStatement) {
+  source.templateId as template then TemplateID(template, medicationStatement) "templateID";
+  source.id -> medicationStatement.identifier;
+  patient -> medicationStatement.subject = reference(patient) "patient";
+  source -> medicationStatement.status = 'completed' "completed";
+  source.entryRelationship as entry where typeCode = 'RSON' -> medicationStatement.reasonCode as reasonCode then {
+//    entry.observation as observation -> reasonCode.text = (text.substring(text.indexOf(observation.text.reference.value.substring(1)))) "idRef"; 
+//      entry.observation as observation -> reasonCode.text = (observation.text.reference.value.substring(1)) "idRef"; 
+      entry.observation as observation -> reasonCode.text = (section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))+%observation.text.reference.value.length()+1,section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))+%observation.text.reference.value.length()+1).indexOf('<'))) "idRef"; 
+  } "entryRelationShip";
+//  source.effectiveTime as effectiveTime -> allergy.onset;
+//  patient -> allergy.patient = reference(patient) "patient"; // We can only handle the first author
+//  source.author as author then {
+//    author.time -> allergy.assertedDate;
+//    author.assignedAuthor as assignedAuthor ->  bundle.entry as e,  e.resource = create('Practitioner') as practitioner,  allergy.recorder = reference(practitioner) then ClinicalDocumentAuthorPractitioner(author, practitioner) "recorder";
+//  };
+//  source.entryRelationship as entry then {
+//    entry.observation as observation then {
+//      observation.negationInd as negation then Negation(negation, allergy);
+//      observation.templateId as template then TemplateID(template, allergy) "templateID";
+//      observation.value -> allergy.code;
+//      observation.participant as participant then {
+//        participant.participantRole as role then {
+//         role.playingEntity as entity -> allergy.reaction as reaction then {
+//            entity.code -> reaction.substance;
+//          } "entity";
+//        } "role";
+//      } "consumable";
+//      observation.entryRelationship as entry where typeCode = 'MFST' -> allergy.reaction as reaction then {
+//        entry.observation as reactionObs then {
+//          reactionObs.effectiveTime -> reaction.onset;
+//          reactionObs.value -> reaction.manifestation;
+//          reactionObs.entryRelationship as sevEntry where typeCode = 'SUBJ' then {
+//            sevEntry.observation as severity then {
+//              severity.value -> reaction.severity "severity";
+//            };
+//          } "severity";
+//        } "reaction";
+//      } "reaction";
+//      observation.entryRelationship as criticalityEntry where typeCode = 'SUBJ' then {
+//        criticalityEntry.observation as criticalityObservation then {
+//          criticalityObservation.value -> allergy.criticality "code";
+//        };
+//      } "criticality";
+//    };
+//  } "entry";
+}
+
+group SectionHistoryOfMedicationUse(source source : Section, source patient : Patient, target target, target bundle: Bundle) extends ClinicalDocumentSection {
+  source.entry as cdaEntry ->  bundle.entry as e,  e.resource = create('MedicationStatement') as medicationstatement,  target.entry = reference(medicationstatement) then {
+    cdaEntry.substanceAdministration as substanceAdministration then SubstanceAdministrationMedicationStatement(source, substanceAdministration, patient, medicationstatement);
+  };
+}
+
+group CDASections(source cda : ClinicalDocument, source component, source patient : Patient, target composition : Composition, target bundle : Bundle) {
+  component.section as srcSection -> composition.section as tgtSection then SectionHistoryOfMedicationUse(srcSection, patient, tgtSection, bundle);
+//  component.section as srcSection -> composition.section as tgtSection then ClinicalDocumentSection(srcSection, patient, tgtSection);
+}
