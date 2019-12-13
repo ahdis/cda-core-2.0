@@ -45,10 +45,10 @@ Content-Type: text/fhir-mapping
 ### Transform CDAMedicationCardDocument
 
 POST {{host}}/StructureMap/$transform?source=http://hl7.org/fhir/cda/mapping/CDAMedicationCardDocument
-Accept: application/fhir+xml;fhirVersion=4.0
+Accept: application/fhir+json;fhirVersion=4.0
 Content-Type: application/fhir+xml;fhirVersion=4.0
 
-< /Users/oliveregger/Documents/github/hl7ch-cda/projects/eHealthSuisse/eMedikation/v1.0/2-7-MedicationCard.xml
+< ../hl7ch-cda/projects/eHealthSuisse/eMedikation/v1.0/2-7-MedicationCard.xml
 
 Origin: 
 

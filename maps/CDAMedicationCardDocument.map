@@ -37,10 +37,17 @@ group SubstanceAdministrationMedicationStatement(source section : Section, sourc
   patient -> medicationStatement.subject = reference(patient) "patient";
   source -> medicationStatement.status = 'completed' "completed";
   source.entryRelationship as entry where typeCode = 'RSON' -> medicationStatement.reasonCode as reasonCode then {
-//    entry.observation as observation -> reasonCode.text = (text.substring(text.indexOf(observation.text.reference.value.substring(1)))) "idRef"; 
-//      entry.observation as observation -> reasonCode.text = (observation.text.reference.value.substring(1)) "idRef"; 
-      entry.observation as observation -> reasonCode.text = (section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))+%observation.text.reference.value.length()+1,section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))+%observation.text.reference.value.length()+1).indexOf('<'))) "idRef"; 
-  } "entryRelationShip";
+    // extraxt Bluthochdruck from id #mtpc.1.reason in section text <td ID="mtpc.1.reason">Bluthochdruck</td>
+    //                                                                      a--------------b------------c
+    // id = (%observation.text.reference.value.substring(1))
+    // a = %section.text.substring(%section.text.indexOf(%id))
+    // res = (%a.substring(%a.indexOf('>')+1, %a.indexOf('<')-%a.indexOf('>')-1))
+    // a = %section.text.substring(%section.text.indexOf((%observation.text.reference.value.substring(1))))
+    entry.observation as observation -> reasonCode.text =  (%section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))).substring(%section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))).indexOf('>')+1, %section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))).indexOf('<')-%section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))).indexOf('>')-1)) "idRef"; 
+  } "entryRelationShip 2.16.756.5.30.1.1.10.4.41";
+  source.entryRelationship as entry where typeCode = 'COMP' -> medicationStatement.note as note then {
+    entry.act as act -> note.text =  (%section.text.substring(%section.text.indexOf(%act.text.reference.value.substring(1))).substring(%section.text.substring(%section.text.indexOf(%act.text.reference.value.substring(1))).indexOf('>')+1, %section.text.substring(%section.text.indexOf(%act.text.reference.value.substring(1))).indexOf('<')-%section.text.substring(%section.text.indexOf(%act.text.reference.value.substring(1))).indexOf('>')-1)) "idRef"; 
+  } "entryRelationShip 2.16.756.5.30.1.1.10.4.41";  
 //  source.effectiveTime as effectiveTime -> allergy.onset;
 //  patient -> allergy.patient = reference(patient) "patient"; // We can only handle the first author
 //  source.author as author then {
