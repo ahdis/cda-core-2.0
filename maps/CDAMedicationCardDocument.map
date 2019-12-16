@@ -31,14 +31,44 @@ group ClinicalDocumentBundle(source cda : ClinicalDocument, target bundle : Bund
              } "then";
 }
 
+group  SubstanceAdministrationMedication(source source : SubstanceAdministration, target medicationStatement : MedicationStatement, target medication : Medication) {
+  source -> medication.id = 'med', medicationStatement.medication = create('Reference') as vt, vt.reference = '#med' "medication";
+  source.consumable as consumable then {
+    consumable.manufacturedProduct as manufacturedProduct then {
+      manufacturedProduct.manufacturedMaterial as manufacturedMaterial then {
+        manufacturedMaterial.asContent as asContent then {
+          asContent.containerPackagedMedicine as containerPackagedMedicine then {
+            containerPackagedMedicine.code as code -> medication.code = code "medication.code";
+            containerPackagedMedicine.formCode as formCode -> medication.form = formCode "medication.formCode";
+            containerPackagedMedicine.capacityQuantity as capacityQuantity where (%containerPackagedMedicine.formCode.code='10219000') -> medication.amount = create('Ratio') as ratio then {
+              capacityQuantity -> ratio.numerator = create('Quantity') as quantity, 
+                       quantity.value = capacityQuantity, 
+                       quantity.unit='tablets', 
+                       quantity.system='http://unitsofmeasure.org',
+                       quantity.code='1',
+                       ratio.denominator	 = create('Quantity') as denominator	, 
+                       denominator.value='1',
+                       denominator.unit='Package',
+                       denominator.system='http://unitsofmeasure.org',
+                       denominator.code='1'
+                       "capacityQuantity"; 
+            } "ratio";
+          } "containerPackagedMedicine";
+        } "asContent";
+      } "manufacturedMaterial";
+    } "manufacturedProduct";
+  } "consumable";
+}
+
 group SubstanceAdministrationMedicationStatement(source section : Section, source source : SubstanceAdministration, source patient : Patient, target medicationStatement : MedicationStatement) {
   source.templateId as template then TemplateID(template, medicationStatement) "templateID";
   source.id -> medicationStatement.identifier;
   patient -> medicationStatement.subject = reference(patient) "patient";
   source -> medicationStatement.status = 'completed' "completed";
+  source -> medicationStatement.contained = create('Medication') as medication then SubstanceAdministrationMedication(source, medicationStatement, medication) "medication";
   source.entryRelationship as entry where typeCode = 'RSON' -> medicationStatement.reasonCode as reasonCode then {
-    // extraxt Bluthochdruck from id #mtpc.1.reason in section text <td ID="mtpc.1.reason">Bluthochdruck</td>
-    //                                                                      a--------------b------------c
+    // extraxt text (Bluthochdruck) from id #mtpc.1.reason in section text <td ID="mtpc.1.reason">Bluthochdruck</td>
+    //                                                                             a--------------b------------c
     // id = (%observation.text.reference.value.substring(1))
     // a = %section.text.substring(%section.text.indexOf(%id))
     // res = (%a.substring(%a.indexOf('>')+1, %a.indexOf('<')-%a.indexOf('>')-1))
@@ -48,42 +78,6 @@ group SubstanceAdministrationMedicationStatement(source section : Section, sourc
   source.entryRelationship as entry where typeCode = 'COMP' -> medicationStatement.note as note then {
     entry.act as act -> note.text =  (%section.text.substring(%section.text.indexOf(%act.text.reference.value.substring(1))).substring(%section.text.substring(%section.text.indexOf(%act.text.reference.value.substring(1))).indexOf('>')+1, %section.text.substring(%section.text.indexOf(%act.text.reference.value.substring(1))).indexOf('<')-%section.text.substring(%section.text.indexOf(%act.text.reference.value.substring(1))).indexOf('>')-1)) "idRef"; 
   } "entryRelationShip 2.16.756.5.30.1.1.10.4.41";  
-//  source.effectiveTime as effectiveTime -> allergy.onset;
-//  patient -> allergy.patient = reference(patient) "patient"; // We can only handle the first author
-//  source.author as author then {
-//    author.time -> allergy.assertedDate;
-//    author.assignedAuthor as assignedAuthor ->  bundle.entry as e,  e.resource = create('Practitioner') as practitioner,  allergy.recorder = reference(practitioner) then ClinicalDocumentAuthorPractitioner(author, practitioner) "recorder";
-//  };
-//  source.entryRelationship as entry then {
-//    entry.observation as observation then {
-//      observation.negationInd as negation then Negation(negation, allergy);
-//      observation.templateId as template then TemplateID(template, allergy) "templateID";
-//      observation.value -> allergy.code;
-//      observation.participant as participant then {
-//        participant.participantRole as role then {
-//         role.playingEntity as entity -> allergy.reaction as reaction then {
-//            entity.code -> reaction.substance;
-//          } "entity";
-//        } "role";
-//      } "consumable";
-//      observation.entryRelationship as entry where typeCode = 'MFST' -> allergy.reaction as reaction then {
-//        entry.observation as reactionObs then {
-//          reactionObs.effectiveTime -> reaction.onset;
-//          reactionObs.value -> reaction.manifestation;
-//          reactionObs.entryRelationship as sevEntry where typeCode = 'SUBJ' then {
-//            sevEntry.observation as severity then {
-//              severity.value -> reaction.severity "severity";
-//            };
-//          } "severity";
-//        } "reaction";
-//      } "reaction";
-//      observation.entryRelationship as criticalityEntry where typeCode = 'SUBJ' then {
-//        criticalityEntry.observation as criticalityObservation then {
-//          criticalityObservation.value -> allergy.criticality "code";
-//        };
-//      } "criticality";
-//    };
-//  } "entry";
 }
 
 group SectionHistoryOfMedicationUse(source source : Section, source patient : Patient, target target, target bundle: Bundle) extends ClinicalDocumentSection {
