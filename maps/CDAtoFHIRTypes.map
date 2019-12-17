@@ -80,6 +80,9 @@ group STstring(source source : ST, target target : string) extends Any <<types>>
 group EDstring(source source : ED, target target : string) extends STstring <<types>> {
 }
 
+group ONstring(source source : ON, target target : string) extends STstring <<types>> {
+}
+
 group CSCode(source source : CS, target target : code) extends Any <<types>> {
   source.code as c -> target.value = cast(c, 'string');
 }
@@ -143,5 +146,15 @@ group TELContactPoint(source source : TEL, target target : ContactPoint) extends
   source.use where (source.use = 'TMP') -> target.use = 'temp' "usetmp";
   source.use where (source.use = 'MC') -> target.use = 'mobile' "usemobile";
   source.useablePeriod -> target.period; // use: for source.use as c make target.use = translate(c, 'http://hl7.org/fhir/ConceptMap/cm-telecom-use-v3', 'code')
+}
+
+group PQQuantity(source source : PQ, target target : Quantity) extends Any <<types>> {
+  source.unit as unit -> target.unit = unit;
+  source.value as value -> target.value = value;
+}
+
+group RTOPQPQRatio(source source : RTO_PQ_PQ, target target : Ratio) extends Any <<types>> {
+  source.numerator as numerator -> target.numerator = numerator;
+  source.denominator as denominator -> target.denominator = denominator; 
 }
 

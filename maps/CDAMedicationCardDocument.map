@@ -41,8 +41,8 @@ group  SubstanceAdministrationMedication(source source : SubstanceAdministration
             containerPackagedMedicine.code as code -> medication.code = code "medication.code";
             containerPackagedMedicine.formCode as formCode -> medication.form = formCode "medication.formCode";
             containerPackagedMedicine.capacityQuantity as capacityQuantity where (%containerPackagedMedicine.formCode.code='10219000') -> medication.amount = create('Ratio') as ratio then {
-              capacityQuantity -> ratio.numerator = create('Quantity') as quantity, 
-                       quantity.value = capacityQuantity, 
+              capacityQuantity.value as value -> ratio.numerator = create('Quantity') as quantity, 
+                       quantity.value = value, 
                        quantity.unit='tablets', 
                        quantity.system='http://unitsofmeasure.org',
                        quantity.code='1',
@@ -55,6 +55,13 @@ group  SubstanceAdministrationMedication(source source : SubstanceAdministration
             } "ratio";
           } "containerPackagedMedicine";
         } "asContent";
+        manufacturedMaterial.ingredient as ingredient -> medication.ingredient as ing then {
+//          ingredient.quantity as quantity -> ing.strength = create('Ratio') as strength then RTOPQPQRatio(quantity, strength) "strength";
+          ingredient.quantity as quantity -> ing.strength = quantity "strength";
+          ingredient.ingredient as medingredient then {
+              medingredient.code as code -> ing.item = create('CodeableConcept') as ingcode then CECodeableConcept(code, ingcode) "ingredientcode";
+          } "ingredient.ingredient";
+        } "ingredient";
       } "manufacturedMaterial";
     } "manufacturedProduct";
   } "consumable";
