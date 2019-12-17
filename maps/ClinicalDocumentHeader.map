@@ -20,6 +20,11 @@ group ClinicalDocumentBundleHeader(source cda : ClinicalDocument, target bundle 
   cda.effectiveTime -> bundle.timestamp;
 }
 
+group ChExtEprConfidentialityCode(source source: CE, target ext: Extension) {
+  source -> ext.url = 'http://fhir.ch/ig/ch-core/StructureDefinition/ch-ext-epr-confidentialitycode' "url";
+  source as ce -> ext.value = create('CodeableConcept') as value then CECodeableConcept(ce, value) "code";
+}
+
 group ClinicalDocumentComposition(source source : ClinicalDocument, target target : Composition, target patientResource: Patient, target bundle : Bundle) {
   source.templateId as template then TemplateID(template, target) "templateID";
   source.languageCode -> target.language;
@@ -45,7 +50,12 @@ group ClinicalDocumentComposition(source source : ClinicalDocument, target targe
       assignedAuthor.representedOrganization as srcOrg ->  bundle.entry as e2,  e2.resource = create('Organization') as organization,  target.author = reference(organization) then ClinicalDocumentOrganization(srcOrg, organization);
     } "author";
   };
-  source.confidentialityCode -> target.confidentiality;
+//  source.confidentialityCode -> target.confidentiality;
+  source.confidentialityCode as confidentialityCode then {
+    confidentialityCode.code as v -> 
+      target.confidentiality = translate(v, 'http://fhir.ch/ig/ch-core/ConceptMap/documententry-confidentialitycode-to-fhir', 'code') as fhirconf,
+            fhirconf.extension as ext then ChExtEprConfidentialityCode(confidentialityCode, ext) "confcode";
+  } "confidentialityCode";
   source.legalAuthenticator as legalAuth ->  bundle.entry as e,  e.resource = create('Practitioner') as practitioner then {
     legalAuth -> target.attester as attester then {
       legalAuth -> attester.mode = 'legal' "mode";
