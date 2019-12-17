@@ -40,6 +40,10 @@ group II(source source : II, target target : Identifier) extends Any <<types>> {
   };
 }
 
+group INT(source source : INT, target target : integer) extends Any <<types>> {
+  source.value as v -> target.value = v "integer";
+}
+
 group TemplateID(source template : II, target target) {
   template -> target.extension as ext then {
     template -> ext.url = 'http://hl7.org/fhir/cda/StructureDefinition/templateID' "url";

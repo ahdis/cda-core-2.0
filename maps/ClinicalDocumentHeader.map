@@ -22,7 +22,18 @@ group ClinicalDocumentBundleHeader(source cda : ClinicalDocument, target bundle 
 
 group ChExtEprConfidentialityCode(source source: CE, target ext: Extension) {
   source -> ext.url = 'http://fhir.ch/ig/ch-core/StructureDefinition/ch-ext-epr-confidentialitycode' "url";
-  source as ce -> ext.value = create('CodeableConcept') as value then CECodeableConcept(ce, value) "code";
+  source -> ext.value = create('CodeableConcept') as value then CECodeableConcept(source, value) "code";
+}
+
+group ChExtEprSetId(source source: II, target ext: Extension) {
+  source -> ext.url = 'http://fhir.ch/ig/ch-core/StructureDefinition/ch-ext-epr-setid' "url";
+  source -> ext.value = create('Identifier') as value then II(source, value) "value";
+}
+
+group ChExtEprVersionNumber(source source: INT, target ext: Extension) {
+  source -> ext.url = 'http://fhir.ch/ig/ch-core/StructureDefinition/ch-ext-epr-versionnumber' "url";
+//  source.value as v -> ext.value = create('integer') as value, value = v "value";
+  source -> ext.value = create('integer') as value then INT(source, value) "value";
 }
 
 group ClinicalDocumentComposition(source source : ClinicalDocument, target target : Composition, target patientResource: Patient, target bundle : Bundle) {
@@ -56,6 +67,8 @@ group ClinicalDocumentComposition(source source : ClinicalDocument, target targe
       target.confidentiality = translate(v, 'http://fhir.ch/ig/ch-core/ConceptMap/documententry-confidentialitycode-to-fhir', 'code') as fhirconf,
             fhirconf.extension as ext then ChExtEprConfidentialityCode(confidentialityCode, ext) "confcode";
   } "confidentialityCode";
+  source.setId as setId -> target.extension as ext then ChExtEprSetId(setId, ext) "setId";
+  source.versionNumber as versionNumber -> target.extension as ext2 then ChExtEprVersionNumber(versionNumber, ext2) "versionNumber";
   source.legalAuthenticator as legalAuth ->  bundle.entry as e,  e.resource = create('Practitioner') as practitioner then {
     legalAuth -> target.attester as attester then {
       legalAuth -> attester.mode = 'legal' "mode";
