@@ -5,12 +5,15 @@ uses "http://hl7.org/fhir/cda/StructureDefinition/AssignedAuthor" alias Assigned
 uses "http://hl7.org/fhir/cda/StructureDefinition/AssignedEntity" alias AssignedEntity as queried
 uses "http://hl7.org/fhir/cda/StructureDefinition/CustodianOrganization" alias CustodianOrganization as queried
 uses "http://hl7.org/fhir/cda/StructureDefinition/Section" alias Section as queried
+uses "http://hl7.org/fhir/cda/StructureDefinition/InformationRecipient" alias InformationRecipient as queried
+uses "http://hl7.org/fhir/cda/StructureDefinition/IntendedRecipient" alias IntendedRecipient as queried
 uses "http://hl7.org/fhir/cda/StructureDefinition/PatientRole" alias PatientRole as queried
 uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
 uses "http://hl7.org/fhir/StructureDefinition/Composition" alias Composition as produced
 uses "http://hl7.org/fhir/StructureDefinition/Patient" alias Patient as produced
 uses "http://hl7.org/fhir/StructureDefinition/Practitioner" alias Practitioner as produced
 uses "http://hl7.org/fhir/StructureDefinition/Organization" alias Organization as produced
+
 
 imports "http://hl7.org/fhir/cda/mapping/cdaToFhirTypes"
 
@@ -32,8 +35,16 @@ group ChExtEprSetId(source source: II, target ext: Extension) {
 
 group ChExtEprVersionNumber(source source: INT, target ext: Extension) {
   source -> ext.url = 'http://fhir.ch/ig/ch-core/StructureDefinition/ch-ext-epr-versionnumber' "url";
-//  source.value as v -> ext.value = create('integer') as value, value = v "value";
   source -> ext.value = create('integer') as value then INT(source, value) "value";
+}
+
+group ChExtEprInformationRecipient(source source: IntendedRecipient, target patient: Patient, target ext: Extension) {
+  source -> ext.url = 'http://fhir.ch/ig/ch-core/StructureDefinition/ch-ext-epr-informationrecipient' "url";
+  source -> ext.value = create('Reference') as reference, reference.reference = reference(patient) "value";
+  source.addr as addr -> patient.address as address then ADAddress(addr, address) "address";
+  source.informationRecipient as informationRecipient then {
+    informationRecipient.name as cdaname -> patient.name as fhirname then ENHumanName(cdaname, fhirname) "name";
+  } "informationRecipient";
 }
 
 group ClinicalDocumentComposition(source source : ClinicalDocument, target target : Composition, target patientResource: Patient, target bundle : Bundle) {
@@ -44,14 +55,14 @@ group ClinicalDocumentComposition(source source : ClinicalDocument, target targe
   source.code -> target.type;
   source.title as t -> target.title = (t.dataString);
   source.recordTarget as recordTarget then {
-    recordTarget.patientRole as patient -> target.subject = reference(patientResource) then ClinicalDocumentPatientRole(patient, patientResource, bundle) "subject";
+    recordTarget.patientRole as patient -> target.subject = create('Reference') as reference, reference.reference = reference(patientResource) then ClinicalDocumentPatientRole(patient, patientResource, bundle) "subject";
   };
   source.componentOf as comp ->  bundle.entry as e,  e.resource = create('Encounter') as encounter then {
-    comp.encompassingEncounter as srcEnc -> target.encounter = reference(encounter) then ClinicalDocumentEncounter(srcEnc, bundle, encounter) "srcEncounter";
+    comp.encompassingEncounter as srcEnc -> target.encounter = create('Reference') as reference, reference.reference = reference(encounter) then ClinicalDocumentEncounter(srcEnc, bundle, encounter) "srcEncounter";
   } "encompassingEncounter";
   source.effectiveTime -> target.date;
   source.author as srcAuthor ->  bundle.entry as e,  e.resource = create('Practitioner') as practitioner then {
-    srcAuthor.assignedAuthor as assignedAuthor -> target.author = reference(practitioner) then {
+    srcAuthor.assignedAuthor as assignedAuthor -> target.author = create('Reference') as reference, reference.reference = reference(practitioner) then {
       assignedAuthor.id -> practitioner.identifier;
       assignedAuthor.addr -> practitioner.address;
       assignedAuthor.telecom -> practitioner.telecom;
@@ -73,20 +84,24 @@ group ClinicalDocumentComposition(source source : ClinicalDocument, target targe
     legalAuth -> target.attester as attester then {
       legalAuth -> attester.mode = 'legal' "mode";
       legalAuth.time -> attester.time;
-      legalAuth.assignedEntity as entity -> attester.party = reference(practitioner) then ClinicalDocumentEntityPractitioner(entity, practitioner) "entity";
+      legalAuth.assignedEntity as entity -> attester.party = create('Reference') as reference, reference.reference = reference(practitioner) then ClinicalDocumentEntityPractitioner(entity, practitioner) "entity";
     } "attester";
   };
   source.authenticator as auth ->  bundle.entry as e,  e.resource = create('Practitioner') as practitioner then {
     auth -> target.attester as attester then {
       auth -> attester.mode = 'official' "mode";
       auth.time -> attester.time;
-      auth.assignedEntity as entity -> attester.party = reference(practitioner) then ClinicalDocumentEntityPractitioner(entity, practitioner) "entity";
+      auth.assignedEntity as entity -> attester.party = create('Reference') as reference, reference.reference = reference(practitioner) then ClinicalDocumentEntityPractitioner(entity, practitioner) "entity";
     } "attester";
   };
   source.custodian as custodian -> bundle.entry as e then {
     custodian.assignedCustodian as assignedCustodian -> e.resource = create('Organization') as organization then {
-      assignedCustodian.representedCustodianOrganization as srcOrg -> target.custodian = reference(organization) then ClinicalDocumentOrganization(srcOrg, organization) "assignedCustodian";
+      assignedCustodian.representedCustodianOrganization as srcOrg -> target.custodian = create('Reference') as reference, reference.reference = reference(organization) then ClinicalDocumentOrganization(srcOrg, organization) "assignedCustodian";
     } "custodian";
+  };
+  source.informationRecipient as informationRecipient -> bundle.entry as e then {
+    informationRecipient.intendedRecipient as intendedRecipient -> e.resource = create('Patient') as recipient, target.extension as ext 
+            then ChExtEprInformationRecipient(intendedRecipient, recipient, ext) "informationRecipient";
   };
   source.documentationOf as docOf then {
     docOf.serviceEvent as serviceEvent -> target.event as event then {
@@ -133,7 +148,7 @@ group ClinicalDocumentPatientRole(source source : PatientRole, target target : P
     } "language";
   };
   source.providerOrganization as org ->  bundle.entry as e,  e.resource = create('Organization') as organization then {
-    org -> target.managingOrganization = reference(organization) "reference";
+    org -> target.managingOrganization = create('Reference') as reference, reference.reference = reference(organization) "reference";
     org.id -> organization.identifier;
     org.name as v -> organization.name = (v.other);
     org.telecom -> organization.telecom;
@@ -153,12 +168,12 @@ group ClinicalDocumentEncounter(source source : EncompassingEncounter, target bu
     srcPart.typeCode as code -> tgtPart.type = cc('http://terminology.hl7.org/CodeSystem/v3-ParticipationType', code);
     srcPart.time -> tgtPart.period;
     srcPart.assignedEntity as entity ->  bundle.entry as e,  e.resource = create('Practitioner') as practitioner then {
-      entity -> tgtPart.individual = reference(practitioner) then ClinicalDocumentEntityPractitioner(entity, practitioner) "entry";
+      entity -> tgtPart.individual = create('Reference') as reference, reference.reference = reference(practitioner) then ClinicalDocumentEntityPractitioner(entity, practitioner) "entry";
     } "entity";
   } "participant";
   source.location as srcLocation then {
     srcLocation.healthCareFacility as facility ->  bundle.entry as e,  e.resource = create('Location') as location then {
-      facility ->  target.location as tgtLocation,  tgtLocation.location = reference(location) then ClinicalDocumentLocation(facility, bundle, location) "facLocation";
+      facility ->  target.location as tgtLocation,  tgtLocation.location = create('Reference') as reference, reference.reference = reference(location) then ClinicalDocumentLocation(facility, bundle, location) "facLocation";
     } "facility";
   };
 }
@@ -170,7 +185,7 @@ group ClinicalDocumentLocation(source source : HealthCareFacility, target bundle
  // place names are usually stored with no parts    location.name as srcName -> target.name = cast(srcName, 'string');
     location.addr -> target.address;
     location.serviceProviderOrganization as srcOrg ->  bundle.entry as e,  e.resource = create('Organization') as organization then {
-      srcOrg -> target.managingOrganization = reference(organization) then ClinicalDocumentOrganization(srcOrg, organization) "organization";
+      srcOrg -> target.managingOrganization = create('Reference') as reference, reference.reference = reference(organization) then ClinicalDocumentOrganization(srcOrg, organization) "organization";
     } "org";
   }; // place names are usually stored with no parts
 }
