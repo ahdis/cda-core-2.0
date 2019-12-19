@@ -7,6 +7,9 @@ uses "http://hl7.org/fhir/cda/StructureDefinition/CustodianOrganization" alias C
 uses "http://hl7.org/fhir/cda/StructureDefinition/Section" alias Section as queried
 uses "http://hl7.org/fhir/cda/StructureDefinition/PatientRole" alias PatientRole as queried
 uses "http://hl7.org/fhir/cda/StructureDefinition/SubstanceAdministration" alias SubstanceAdministration as source
+uses "http://hl7.org/fhir/cda/StructureDefinition/IVL_TS" alias IVL_TS as source
+uses "http://hl7.org/fhir/cda/StructureDefinition/EIVL_TS" alias EIVL_TS as source
+uses "http://hl7.org/fhir/cda/StructureDefinition/SXPR_TS" alias SXPR_TS as source
 
 uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
 uses "http://hl7.org/fhir/StructureDefinition/Composition" alias Composition as produced
@@ -14,6 +17,7 @@ uses "http://hl7.org/fhir/StructureDefinition/Patient" alias Patient as produced
 uses "http://hl7.org/fhir/StructureDefinition/Practitioner" alias Practitioner as produced
 uses "http://hl7.org/fhir/StructureDefinition/Organization" alias Organization as produced
 uses "http://hl7.org/fhir/StructureDefinition/MedicationStatement" alias Organization as produced
+uses "http://hl7.org/fhir/StructureDefinition/Dosage" alias Dosage as produced
 
 imports "http://hl7.org/fhir/cda/mapping/cdaToFhirTypes"
 imports "http://hl7.org/fhir/cda/mapping/ClinicalDocumentHeaderToFHIR"
@@ -31,15 +35,57 @@ group ClinicalDocumentBundle(source cda : ClinicalDocument, target bundle : Bund
              } "then";
 }
 
-group  SubstanceAdministrationMedication(source source : SubstanceAdministration, target medicationStatement : MedicationStatement, target medication : Medication) {
+group SubstanceAdministrationDosage(source source : SubstanceAdministration, target dosage: Dosage) {
+  source.effectiveTime: IVL_TS as effectiveTime -> dosage.timing as timing share sharetiming then {
+    effectiveTime -> timing.repeat as repeat then {
+      effectiveTime -> repeat.bounds = create('Period') as period then {
+        effectiveTime.low as low then {
+          low.value as lowDate -> period.start = lowDate "lowDate";
+        } "low";
+        effectiveTime.high as high then {
+          high.value as highDate -> period.end = highDate "highDate";
+        } "high";
+      } "period";
+    } "repeat";
+  } "effectiveTime IVL_TS";
+  source.effectiveTime: EIVL_TS as effectiveTime -> dosage.timing as timing share sharetiming then {
+    effectiveTime -> timing.repeat as repeat then {
+      effectiveTime.event as event then {
+        event.code as code -> repeat.when = code "code";
+      } "event";
+    } "repeat";
+  } "effectiveTime EIVL_TS";
+  source.effectiveTime: SXPR_TS as effectiveTime -> dosage.timing as timing share sharetiming then {
+    effectiveTime -> timing.repeat as repeat then {
+      effectiveTime.comp as comp then {
+        comp.event as event then {
+          event.code as code -> repeat.when = code "code";
+        } "event";
+      } "comp";
+    } "repeat";
+  } "effectiveTime SXPR_TS";
+  source.routeCode as routeCode -> dosage.route as route then CECodeableConcept(routeCode, route) "routeCode";
+  source.doseQuantity as doseQuantity -> dosage.doseAndRate as doseAndRate then {
+    doseQuantity.center as center -> doseAndRate.dose = create('Quantity') as quantity then {
+      center.value as value -> quantity.value = value "value";
+    } "quantity";
+  } "doseQuantity";
+}
+
+group SubstanceAdministrationDosageSplit(source entryRelationship, target dosage: Dosage) {
+  entryRelationship.sequenceNumber as sequenceNumber -> dosage.sequence = sequenceNumber "sequenceNumber";
+  entryRelationship.substanceAdministration as substanceAdministration then SubstanceAdministrationDosage(substanceAdministration, dosage) "dosage";
+}
+
+group SubstanceAdministrationMedication(source source : SubstanceAdministration, target medicationStatement : MedicationStatement, target medication : Medication) {
   source -> medication.id = 'med', medicationStatement.medication = create('Reference') as vt, vt.reference = '#med' "medication";
   source.consumable as consumable then {
     consumable.manufacturedProduct as manufacturedProduct then {
       manufacturedProduct.manufacturedMaterial as manufacturedMaterial then {
         manufacturedMaterial.asContent as asContent then {
           asContent.containerPackagedMedicine as containerPackagedMedicine then {
-            containerPackagedMedicine.code as code -> medication.code = code "medication.code";
-            containerPackagedMedicine.formCode as formCode -> medication.form = formCode "medication.formCode";
+            containerPackagedMedicine.code as code -> medication.code as fhircode then CECodeableConcept(code, fhircode) "medication.code";
+            containerPackagedMedicine.formCode as formCode -> medication.form as form then CECodeableConcept(formCode, form)  "medication.formCode";
             containerPackagedMedicine.capacityQuantity as capacityQuantity where (%containerPackagedMedicine.formCode.code='10219000') -> medication.amount = create('Ratio') as ratio then {
               capacityQuantity.value as value -> ratio.numerator = create('Quantity') as quantity, 
                        quantity.value = value, 
@@ -56,21 +102,48 @@ group  SubstanceAdministrationMedication(source source : SubstanceAdministration
           } "containerPackagedMedicine";
         } "asContent";
         manufacturedMaterial.ingredient as ingredient -> medication.ingredient as ing then {
-//          ingredient.quantity as quantity -> ing.strength = create('Ratio') as strength then RTOPQPQRatio(quantity, strength) "strength";
-          ingredient.quantity as quantity -> ing.strength = quantity "strength";
+          ingredient.quantity as quantity -> ing.strength = create('Ratio') as strength then RTOPQPQRatio(quantity, strength) "strength";
           ingredient.ingredient as medingredient then {
               medingredient.code as code -> ing.item = create('CodeableConcept') as ingcode then CECodeableConcept(code, ingcode) "ingredientcode";
           } "ingredient.ingredient";
         } "ingredient";
       } "manufacturedMaterial";
     } "manufacturedProduct";
+    source -> medicationStatement.dosage as dosage then SubstanceAdministrationDosage(source, dosage) "dosage";
   } "consumable";
+}
+
+group SubstanceAdministrationDosageInstructionUnstructured(source section : Section, source entry : Element, target dosage : Dosage) {
+  // see SubstanceAdministrationMedicationStatement
+  entry.substanceAdministration as observation -> dosage.text = (%section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))).substring(%section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))).indexOf('>')+1, %section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))).indexOf('<')-%section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))).indexOf('>')-1)) "idRef"; 
+}
+
+group ChExternalDocumentId(source source, target ext: Extension) {
+  source -> ext.url = 'externalDocumentId' "url";
+  source -> ext.value = create('Identifier') as id then II(source, id) "value";
+}
+
+group ChExternalDocumentItemId(source source, target ext: Extension) {
+  source -> ext.url = 'id' "url";
+  source -> ext.value = create('Identifier') as id then II(source, id) "value";
+}
+
+group MTPReferenceEntryContentModule(source entryrelationship, target ext: Extension) {
+  entryrelationship -> ext.url = 'http://fhir.ch/ig/ch-emed/StructureDefinition/ch-emed-ext-treatmentplan' "url";
+  entryrelationship.substanceAdministration as substanceAdministration then {
+    substanceAdministration.id as id -> ext.extension as ext then ChExternalDocumentItemId(id, ext) "ChExternalDocumentItemId";
+    substanceAdministration.reference as reference then {
+      reference.externalDocument as externalDocument then {
+        externalDocument.id as id -> ext.extension as ext then ChExternalDocumentId(id, ext) "ChExternalDocumentId";
+      } "externalDocument";
+    } "substanceAdministration";
+  } "id";
 }
 
 group SubstanceAdministrationMedicationStatement(source section : Section, source source : SubstanceAdministration, source patient : Patient, target medicationStatement : MedicationStatement) {
   source.templateId as template then TemplateID(template, medicationStatement) "templateID";
   source.id -> medicationStatement.identifier;
-  patient -> medicationStatement.subject = reference(patient) "patient";
+  patient -> medicationStatement.subject = create('Reference') as reference, reference.reference = reference(patient) "patient";
   source -> medicationStatement.status = 'completed' "completed";
   source -> medicationStatement.contained = create('Medication') as medication then SubstanceAdministrationMedication(source, medicationStatement, medication) "medication";
   source.entryRelationship as entry where typeCode = 'RSON' -> medicationStatement.reasonCode as reasonCode then {
@@ -82,18 +155,23 @@ group SubstanceAdministrationMedicationStatement(source section : Section, sourc
     // a = %section.text.substring(%section.text.indexOf((%observation.text.reference.value.substring(1))))
     entry.observation as observation -> reasonCode.text =  (%section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))).substring(%section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))).indexOf('>')+1, %section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))).indexOf('<')-%section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))).indexOf('>')-1)) "idRef"; 
   } "entryRelationShip 2.16.756.5.30.1.1.10.4.41";
-  source.entryRelationship as entry where typeCode = 'COMP' -> medicationStatement.note as note then {
+  source.entryRelationship as entry where (typeCode='COMP' and act.templateId.root='2.16.756.5.30.1.1.10.4.2') -> medicationStatement.note as note then {
     entry.act as act -> note.text =  (%section.text.substring(%section.text.indexOf(%act.text.reference.value.substring(1))).substring(%section.text.substring(%section.text.indexOf(%act.text.reference.value.substring(1))).indexOf('>')+1, %section.text.substring(%section.text.indexOf(%act.text.reference.value.substring(1))).indexOf('<')-%section.text.substring(%section.text.indexOf(%act.text.reference.value.substring(1))).indexOf('>')-1)) "idRef"; 
-  } "entryRelationShip 2.16.756.5.30.1.1.10.4.41";  
+  } "entryRelationShip 2.16.756.5.30.1.1.10.4.2";  
+  source.entryRelationship as entry where (typeCode='COMP' and substanceAdministration.templateId.root='2.16.756.5.30.1.1.10.4.37') -> medicationStatement.dosage as dosage 
+    then SubstanceAdministrationDosageInstructionUnstructured(section, entry, dosage) "entryRelationShip 2.16.756.5.30.1.1.10.4.37";  
+  source.entryRelationship as entry where (typeCode='COMP' and sequenceNumber.value>=0) -> medicationStatement.dosage as dosage 
+    then SubstanceAdministrationDosageSplit(entry, dosage) "entryRelationShip 2.16.756.5.30.1.1.10.4.36";  
+  source.entryRelationship as entry where (typeCode='REFR' and substanceAdministration.templateId.where(root='1.3.6.1.4.1.19376.1.9.1.3.10').exists()) -> medicationStatement.extension as ext then MTPReferenceEntryContentModule(entry, ext) "MTPReferenceEntry";   
 }
 
 group SectionHistoryOfMedicationUse(source source : Section, source patient : Patient, target target, target bundle: Bundle) extends ClinicalDocumentSection {
-  source.entry as cdaEntry ->  bundle.entry as e,  e.resource = create('MedicationStatement') as medicationstatement,  target.entry = reference(medicationstatement) then {
+  source.entry as cdaEntry ->  bundle.entry as e,  e.resource = create('MedicationStatement') as medicationstatement,  target.entry = create('Reference') as reference, reference.reference = reference(medicationstatement) then {
     cdaEntry.substanceAdministration as substanceAdministration then SubstanceAdministrationMedicationStatement(source, substanceAdministration, patient, medicationstatement);
   };
 }
 
 group CDASections(source cda : ClinicalDocument, source component, source patient : Patient, target composition : Composition, target bundle : Bundle) {
-  component.section as srcSection -> composition.section as tgtSection then SectionHistoryOfMedicationUse(srcSection, patient, tgtSection, bundle);
-//  component.section as srcSection -> composition.section as tgtSection then ClinicalDocumentSection(srcSection, patient, tgtSection);
+  component.section as srcSection where (templateId.where(root='2.16.756.5.30.1.1.10.3.9')) -> composition.section as tgtSection then SectionHistoryOfMedicationUse(srcSection, patient, tgtSection, bundle);
+  component.section as srcSection where (templateId.where(root='2.16.756.5.30.1.1.10.3.2')) -> composition.section as tgtSection then ClinicalDocumentSection(srcSection, patient, tgtSection, bundle);
 }
