@@ -116,6 +116,13 @@ group SubstanceAdministrationMedication(source source : SubstanceAdministration,
 group SubstanceAdministrationDosageInstructionUnstructured(source section : Section, source entry : Element, target dosage : Dosage) {
   // see SubstanceAdministrationMedicationStatement
   entry.substanceAdministration as observation -> dosage.text = (%section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))).substring(%section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))).indexOf('>')+1, %section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))).indexOf('<')-%section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))).indexOf('>')-1)) "idRef"; 
+  entry.substanceAdministration as observation then {
+    observation.text as text then {
+      text.reference as reference then {
+        reference.value as value -> dosage.extension as ext then NarrativeLink(value, ext) "narrativeLink";
+      } "reference";
+    } "text";
+  } "observation";
 }
 
 group ChExternalDocumentId(source source, target ext: Extension) {
@@ -128,6 +135,11 @@ group ChExternalDocumentItemId(source source, target ext: Extension) {
   source -> ext.value = create('Identifier') as id then II(source, id) "value";
 }
 
+group NarrativeLink(source url, target ext: Extension) {
+  url -> ext.url = 'http://hl7.org/fhir/StructureDefinition/narrativeLink' "url";
+  url -> ext.value = create('url') as value, value.value=url "value";
+}
+
 group MTPReferenceEntryContentModule(source entryrelationship, target ext: Extension) {
   entryrelationship -> ext.url = 'http://fhir.ch/ig/ch-emed/StructureDefinition/ch-emed-ext-treatmentplan' "url";
   entryrelationship.substanceAdministration as substanceAdministration then {
@@ -138,6 +150,13 @@ group MTPReferenceEntryContentModule(source entryrelationship, target ext: Exten
       } "externalDocument";
     } "substanceAdministration";
   } "id";
+}
+
+group ObservationMedia(source observationMedia, target binary : Binary) {
+  observationMedia.value as value then {
+    value.mediaType as mediaType -> binary.contentType = mediaType "contentType";
+    value -> binary.data = (value.dataBase64Binary) "dataString";
+  } "value";
 }
 
 group SubstanceAdministrationMedicationStatement(source section : Section, source source : SubstanceAdministration, source patient : Patient, target medicationStatement : MedicationStatement) {
@@ -154,9 +173,23 @@ group SubstanceAdministrationMedicationStatement(source section : Section, sourc
     // res = (%a.substring(%a.indexOf('>')+1, %a.indexOf('<')-%a.indexOf('>')-1))
     // a = %section.text.substring(%section.text.indexOf((%observation.text.reference.value.substring(1))))
     entry.observation as observation -> reasonCode.text =  (%section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))).substring(%section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))).indexOf('>')+1, %section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))).indexOf('<')-%section.text.substring(%section.text.indexOf(%observation.text.reference.value.substring(1))).indexOf('>')-1)) "idRef"; 
+    entry.observation as observation then {
+      observation.text as text then {
+        text.reference as reference then {
+          reference.value as value -> reasonCode.extension as ext then NarrativeLink(value, ext) "narrativeLink";
+        } "reference";
+      } "text";
+    } "observation";
   } "entryRelationShip 2.16.756.5.30.1.1.10.4.41";
   source.entryRelationship as entry where (typeCode='COMP' and act.templateId.root='2.16.756.5.30.1.1.10.4.2') -> medicationStatement.note as note then {
     entry.act as act -> note.text =  (%section.text.substring(%section.text.indexOf(%act.text.reference.value.substring(1))).substring(%section.text.substring(%section.text.indexOf(%act.text.reference.value.substring(1))).indexOf('>')+1, %section.text.substring(%section.text.indexOf(%act.text.reference.value.substring(1))).indexOf('<')-%section.text.substring(%section.text.indexOf(%act.text.reference.value.substring(1))).indexOf('>')-1)) "idRef"; 
+    entry.act as act then {
+      act.text as text then {
+        text.reference as reference then {
+          reference.value as value -> dosage.extension as ext then NarrativeLink(value, ext) "narrativeLink";
+        } "reference";
+      } "text";
+    } "actnarrative";
   } "entryRelationShip 2.16.756.5.30.1.1.10.4.2";  
   source.entryRelationship as entry where (typeCode='COMP' and substanceAdministration.templateId.root='2.16.756.5.30.1.1.10.4.37') -> medicationStatement.dosage as dosage 
     then SubstanceAdministrationDosageInstructionUnstructured(section, entry, dosage) "entryRelationShip 2.16.756.5.30.1.1.10.4.37";  
@@ -171,7 +204,14 @@ group SectionHistoryOfMedicationUse(source source : Section, source patient : Pa
   };
 }
 
+group SectionOriginalRepresentation(source source : Section, source patient : Patient, target target, target bundle: Bundle) extends ClinicalDocumentSection {
+  source.entry as cdaEntry ->  bundle.entry as e,  e.resource = create('Binary') as binary, binary.id = (cdaEntry.observationMedia.ID), target.entry = create('Reference') as reference, reference.reference = reference(binary) then {
+    cdaEntry.observationMedia as observationMedia then ObservationMedia(observationMedia, binary);
+  };
+}
+
 group CDASections(source cda : ClinicalDocument, source component, source patient : Patient, target composition : Composition, target bundle : Bundle) {
   component.section as srcSection where (templateId.where(root='2.16.756.5.30.1.1.10.3.9')) -> composition.section as tgtSection then SectionHistoryOfMedicationUse(srcSection, patient, tgtSection, bundle);
   component.section as srcSection where (templateId.where(root='2.16.756.5.30.1.1.10.3.2')) -> composition.section as tgtSection then ClinicalDocumentSection(srcSection, patient, tgtSection, bundle);
+  component.section as srcSection where (templateId.where(root='2.16.756.5.30.1.1.10.3.45')) -> composition.section as tgtSection then SectionOriginalRepresentation(srcSection, patient, tgtSection, bundle);
 }
