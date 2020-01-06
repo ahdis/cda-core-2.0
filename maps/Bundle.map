@@ -37,4 +37,3 @@ group CompositionClinicalDocument(source bundle : Bundle, source source : Compos
     };
   } "sections";
 }
-
