@@ -1,4 +1,4 @@
-map "http://hl7.org/fhir/cda/mapping/cdaToFhirTypes" = "Transform for CDA types to FHIR types"
+map "http://hl7.org/fhir/cda/mapping/CdaToFhirTypes" = "Transform for CDA types to FHIR types"
 
 uses "http://hl7.org/fhir/cda/StructureDefinition/II" as source
 uses "http://hl7.org/fhir/StructureDefinition/Identifier" as target

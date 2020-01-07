@@ -1,4 +1,4 @@
-map "http://hl7.org/fhir/cda/mapping/CDAMedicationCardDocument" = "CDA MedicationCardDocument to FHIR"
+map "http://hl7.org/fhir/cda/mapping/CdaChEmedMedicationCardDocumentToBundle" = "CDA MedicationCardDocument to FHIR"
 
 uses "http://hl7.org/fhir/cda/StructureDefinition/ClinicalDocument" alias ClinicalDocument as source
 uses "http://hl7.org/fhir/cda/StructureDefinition/AssignedAuthor" alias AssignedAuthor as queried
@@ -19,20 +19,24 @@ uses "http://hl7.org/fhir/StructureDefinition/Organization" alias Organization a
 uses "http://hl7.org/fhir/StructureDefinition/MedicationStatement" alias Organization as produced
 uses "http://hl7.org/fhir/StructureDefinition/Dosage" alias Dosage as produced
 
-imports "http://hl7.org/fhir/cda/mapping/cdaToFhirTypes"
-imports "http://hl7.org/fhir/cda/mapping/ClinicalDocumentHeaderToFHIR"
+imports "http://hl7.org/fhir/cda/mapping/CdaToFhirTypes"
+imports "http://hl7.org/fhir/cda/mapping/CdaToBundle"
+imports "http://hl7.org/fhir/cda/mapping/CdaChToBundle"
 
-group ClinicalDocumentBundle(source cda : ClinicalDocument, target bundle : Bundle) extends ClinicalDocumentBundleHeader {
-  cda ->  bundle.entry as e first,  e.resource = create('Composition') as composition, 
-             bundle.entry as e2, e2.resource = create('Patient') as patient 
-             then {
-                cda then ClinicalDocumentComposition(cda, composition, patient, bundle) "composition";
-                cda.component as component then {
-                  component.structuredBody as body then {
-                    body.component as component then CDASections(cda, component, patient, composition, bundle) "bodyComponent";
-                  } "body";
-                } "component";
-             } "then";
+group CdaChEmedMedicationCardDocumentToBundle(source cda : ClinicalDocument, target bundle : Bundle) {
+  cda ->  bundle.entry as e first,  e.resource = create('Composition') as composition share composition, 
+             bundle.entry as e2, e2.resource = create('Patient') as patient share patient
+             then ClinicalDocumentChEmedMedicationCardDocumentToBundle(cda, patient, composition, bundle) "ClinicalDocumentToBody";
+}
+
+group ClinicalDocumentChEmedMedicationCardDocumentToBundle(source cda : ClinicalDocument, target patient : Patient, target composition : Composition, target bundle : Bundle) extends ClinicalDocumentChToBundle {
+  cda.component as component then {
+    component.structuredBody as body then {
+      body.component as component then {
+        component.section as srcSection where (templateId.where(root='2.16.756.5.30.1.1.10.3.9')) -> composition.section as tgtSection then SectionHistoryOfMedicationUse(srcSection, patient, tgtSection, bundle);
+      } "component";
+    } "body";
+  } "component";
 }
 
 group SubstanceAdministrationDosage(source source : SubstanceAdministration, target dosage: Dosage) {
@@ -92,7 +96,8 @@ group SubstanceAdministrationMedication(source source : SubstanceAdministration,
                        quantity.unit='tablets', 
                        quantity.system='http://unitsofmeasure.org',
                        quantity.code='1',
-                       ratio.denominator	 = create('Quantity') as denominator	, 
+                       ratio.denominator	 = create('Quantity') as denominator
+                       , 
                        denominator.value='1',
                        denominator.unit='Package',
                        denominator.system='http://unitsofmeasure.org',
@@ -152,13 +157,6 @@ group MTPReferenceEntryContentModule(source entryrelationship, target ext: Exten
   } "id";
 }
 
-group ObservationMedia(source observationMedia, target binary : Binary) {
-  observationMedia.value as value then {
-    value.mediaType as mediaType -> binary.contentType = mediaType "contentType";
-    value -> binary.data = (value.dataBase64Binary) "dataString";
-  } "value";
-}
-
 group SubstanceAdministrationMedicationStatement(source section : Section, source source : SubstanceAdministration, source patient : Patient, target medicationStatement : MedicationStatement) {
   source.templateId as template then TemplateID(template, medicationStatement) "templateID";
   source.id -> medicationStatement.identifier;
@@ -202,16 +200,4 @@ group SectionHistoryOfMedicationUse(source source : Section, source patient : Pa
   source.entry as cdaEntry ->  bundle.entry as e,  e.resource = create('MedicationStatement') as medicationstatement,  target.entry = create('Reference') as reference, reference.reference = reference(medicationstatement) then {
     cdaEntry.substanceAdministration as substanceAdministration then SubstanceAdministrationMedicationStatement(source, substanceAdministration, patient, medicationstatement);
   };
-}
-
-group SectionOriginalRepresentation(source source : Section, source patient : Patient, target target, target bundle: Bundle) extends ClinicalDocumentSection {
-  source.entry as cdaEntry ->  bundle.entry as e,  e.resource = create('Binary') as binary, binary.id = (cdaEntry.observationMedia.ID), target.entry = create('Reference') as reference, reference.reference = reference(binary) then {
-    cdaEntry.observationMedia as observationMedia then ObservationMedia(observationMedia, binary);
-  };
-}
-
-group CDASections(source cda : ClinicalDocument, source component, source patient : Patient, target composition : Composition, target bundle : Bundle) {
-  component.section as srcSection where (templateId.where(root='2.16.756.5.30.1.1.10.3.9')) -> composition.section as tgtSection then SectionHistoryOfMedicationUse(srcSection, patient, tgtSection, bundle);
-  component.section as srcSection where (templateId.where(root='2.16.756.5.30.1.1.10.3.2')) -> composition.section as tgtSection then ClinicalDocumentSection(srcSection, patient, tgtSection, bundle);
-  component.section as srcSection where (templateId.where(root='2.16.756.5.30.1.1.10.3.45')) -> composition.section as tgtSection then SectionOriginalRepresentation(srcSection, patient, tgtSection, bundle);
 }

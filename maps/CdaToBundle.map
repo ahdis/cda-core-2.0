@@ -1,12 +1,18 @@
-map "http://hl7.org/fhir/cda/mapping/ClinicalDocumentHeaderToFHIR" = "CDA Header Document to FHIR"
+map "http://hl7.org/fhir/cda/mapping/CdaToBundle" = "CDA Document to FHIR"
+
+conceptmap "cm-v3-administrative-gender" {
+  prefix s = "http://terminology.hl7.org/ValueSet/v3-AdministrativeGender"
+  prefix t = "http://hl7.org/fhir/ValueSet/administrative-gender"
+
+  s:M == t:male
+  s:F == t:female
+}
 
 uses "http://hl7.org/fhir/cda/StructureDefinition/ClinicalDocument" alias ClinicalDocument as source
 uses "http://hl7.org/fhir/cda/StructureDefinition/AssignedAuthor" alias AssignedAuthor as queried
 uses "http://hl7.org/fhir/cda/StructureDefinition/AssignedEntity" alias AssignedEntity as queried
 uses "http://hl7.org/fhir/cda/StructureDefinition/CustodianOrganization" alias CustodianOrganization as queried
 uses "http://hl7.org/fhir/cda/StructureDefinition/Section" alias Section as queried
-uses "http://hl7.org/fhir/cda/StructureDefinition/InformationRecipient" alias InformationRecipient as queried
-uses "http://hl7.org/fhir/cda/StructureDefinition/IntendedRecipient" alias IntendedRecipient as queried
 uses "http://hl7.org/fhir/cda/StructureDefinition/PatientRole" alias PatientRole as queried
 uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias Bundle as target
 uses "http://hl7.org/fhir/StructureDefinition/Composition" alias Composition as produced
@@ -14,41 +20,29 @@ uses "http://hl7.org/fhir/StructureDefinition/Patient" alias Patient as produced
 uses "http://hl7.org/fhir/StructureDefinition/Practitioner" alias Practitioner as produced
 uses "http://hl7.org/fhir/StructureDefinition/Organization" alias Organization as produced
 
+imports "http://hl7.org/fhir/cda/mapping/CdaToFhirTypes"
 
-imports "http://hl7.org/fhir/cda/mapping/cdaToFhirTypes"
+group CdaToBundle(source cda : ClinicalDocument, target bundle : Bundle) {
+  cda ->  bundle.entry as e first,  e.resource = create('Composition') as composition share composition, 
+             bundle.entry as e2, e2.resource = create('Patient') as patient share patient
+             then ClinicalDocumentToBundle(cda, patient, composition, bundle) "ClinicalDocumentToBody";
+}
 
-group ClinicalDocumentBundleHeader(source cda : ClinicalDocument, target bundle : Bundle) {
+group ClinicalDocumentToBundle(source cda : ClinicalDocument, target patient : Patient, target composition : Composition, target bundle : Bundle) {
   cda.id -> bundle.identifier;
   cda -> bundle.type = 'document' "type";
   cda.effectiveTime -> bundle.timestamp;
-}
-
-group ChExtEprConfidentialityCode(source source: CE, target ext: Extension) {
-  source -> ext.url = 'http://fhir.ch/ig/ch-core/StructureDefinition/ch-ext-epr-confidentialitycode' "url";
-  source -> ext.value = create('CodeableConcept') as value then CECodeableConcept(source, value) "code";
-}
-
-group ChExtEprSetId(source source: II, target ext: Extension) {
-  source -> ext.url = 'http://fhir.ch/ig/ch-core/StructureDefinition/ch-ext-epr-setid' "url";
-  source -> ext.value = create('Identifier') as value then II(source, value) "value";
-}
-
-group ChExtEprVersionNumber(source source: INT, target ext: Extension) {
-  source -> ext.url = 'http://fhir.ch/ig/ch-core/StructureDefinition/ch-ext-epr-versionnumber' "url";
-  source -> ext.value = create('integer') as value then INT(source, value) "value";
-}
-
-group ChExtEprInformationRecipient(source source: IntendedRecipient, target patient: Patient, target ext: Extension) {
-  source -> ext.url = 'http://fhir.ch/ig/ch-core/StructureDefinition/ch-ext-epr-informationrecipient' "url";
-  source -> ext.value = create('Reference') as reference, reference.reference = reference(patient) "value";
-  source.addr as addr -> patient.address as address then ADAddress(addr, address) "address";
-  source.informationRecipient as informationRecipient then {
-    informationRecipient.name as cdaname -> patient.name as fhirname then ENHumanName(cdaname, fhirname) "name";
-  } "informationRecipient";
+  cda then ClinicalDocumentComposition(cda, composition, patient, bundle) "composition";
+  cda.component as component then {
+    component.structuredBody as body then {
+      body.component as component then {
+        component.section as srcSection where $this.templateId.exists()=false -> composition.section as tgtSection then ClinicalDocumentSection(srcSection, patient, tgtSection, bundle);
+      } "component";
+    } "body";
+  } "component";
 }
 
 group ClinicalDocumentComposition(source source : ClinicalDocument, target target : Composition, target patientResource: Patient, target bundle : Bundle) {
-  source.templateId as template then TemplateID(template, target) "templateID";
   source.languageCode -> target.language;
   source.setId -> target.identifier "setID";
   source -> target.status = 'final' "status";
@@ -69,17 +63,10 @@ group ClinicalDocumentComposition(source source : ClinicalDocument, target targe
       assignedAuthor.assignedPerson as person then {
         person.name -> practitioner.name;
       };
-      assignedAuthor.representedOrganization as srcOrg ->  bundle.entry as e2,  e2.resource = create('Organization') as organization,  target.author = reference(organization) then ClinicalDocumentOrganization(srcOrg, organization);
+      assignedAuthor.representedOrganization as srcOrg ->  bundle.entry as e2,  e2.resource = create('Organization') as organization, target.author = create('Reference') as reference2, reference2.reference = reference(organization) then ClinicalDocumentOrganization(srcOrg, organization);
     } "author";
   };
-//  source.confidentialityCode -> target.confidentiality;
-  source.confidentialityCode as confidentialityCode then {
-    confidentialityCode.code as v -> 
-      target.confidentiality = translate(v, 'http://fhir.ch/ig/ch-core/ConceptMap/documententry-confidentialitycode-to-fhir', 'code') as fhirconf,
-            fhirconf.extension as ext then ChExtEprConfidentialityCode(confidentialityCode, ext) "confcode";
-  } "confidentialityCode";
-  source.setId as setId -> target.extension as ext then ChExtEprSetId(setId, ext) "setId";
-  source.versionNumber as versionNumber -> target.extension as ext2 then ChExtEprVersionNumber(versionNumber, ext2) "versionNumber";
+  source.confidentialityCode -> target.confidentiality share confidentialityCode;
   source.legalAuthenticator as legalAuth ->  bundle.entry as e,  e.resource = create('Practitioner') as practitioner then {
     legalAuth -> target.attester as attester then {
       legalAuth -> attester.mode = 'legal' "mode";
@@ -98,10 +85,6 @@ group ClinicalDocumentComposition(source source : ClinicalDocument, target targe
     custodian.assignedCustodian as assignedCustodian -> e.resource = create('Organization') as organization then {
       assignedCustodian.representedCustodianOrganization as srcOrg -> target.custodian = create('Reference') as reference, reference.reference = reference(organization) then ClinicalDocumentOrganization(srcOrg, organization) "assignedCustodian";
     } "custodian";
-  };
-  source.informationRecipient as informationRecipient -> bundle.entry as e then {
-    informationRecipient.intendedRecipient as intendedRecipient -> e.resource = create('Patient') as recipient, target.extension as ext 
-            then ChExtEprInformationRecipient(intendedRecipient, recipient, ext) "informationRecipient";
   };
   source.documentationOf as docOf then {
     docOf.serviceEvent as serviceEvent -> target.event as event then {
@@ -138,7 +121,10 @@ group ClinicalDocumentPatientRole(source source : PatientRole, target target : P
   source.addr -> target.address;
   source.telecom -> target.telecom;
   source.patient as patient then {
-    patient.name -> target.name; // gender: for patient.administrativeGenderCode make target.gender
+    patient.name -> target.name; 
+    patient.administrativeGenderCode as gender then {
+      gender.code as v -> target.gender = translate(v, '#cm-v3-administrative-gender', 'code') "gender";
+    } "gender";
     patient.birthTime -> target.birthDate "birthDate";
     patient.deceasedInd as indicator where patient.deceasedTime.empty() -> target.deceased = create('boolean') as bool then boolean(indicator, bool) "deceasedBL";
     patient.deceasedTime -> target.deceased;
@@ -200,4 +186,3 @@ group ClinicalDocumentSection(source source : Section, source patient : Patient,
   };
   source.section as srcSection -> target.section as tgtSection then ClinicalDocumentSection(srcSection, patient, tgtSection, bundle);
 }
-
