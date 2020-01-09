@@ -35,8 +35,8 @@ group ClinicalDocumentToBundle(source cda : ClinicalDocument, target patient : P
   cda then ClinicalDocumentComposition(cda, composition, patient, bundle) "composition";
   cda.component as component then {
     component.structuredBody as body then {
-      body.component as component then {
-        component.section as srcSection where $this.templateId.exists()=false -> composition.section as tgtSection then ClinicalDocumentSection(srcSection, patient, tgtSection, bundle);
+      body.component as component log 'component' then {
+        component.section as srcSection where $this.code.empty() -> composition.section as tgtSection then ClinicalDocumentSection(srcSection, patient, tgtSection, bundle);
       } "component";
     } "body";
   } "component";
@@ -177,7 +177,6 @@ group ClinicalDocumentLocation(source source : HealthCareFacility, target bundle
 }
 
 group ClinicalDocumentSection(source source : Section, source patient : Patient, target target, target bundle: Bundle) {
-  source.templateId as template then TemplateID(template, target) "templateID";
   source.title as t -> target.title = (t.dataString);
   source.code -> target.code;
   source.text as cdaText -> target.text as fhirText then {

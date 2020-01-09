@@ -28,7 +28,6 @@ Content-Type: text/fhir-mapping
 
 < ./maps/CdaChToBundle.map
 
-
 ### POST CdaChEmedMedicationCardDocumentToBundle.map 
 POST {{host}}/StructureMap HTTP/1.1
 Accept: application/fhir+xml;fhirVersion=4.0
@@ -48,20 +47,11 @@ Content-Type: application/fhir+xml;fhirVersion=4.0
 Origin: 
 
 curl --request POST \
-  --url 'http://localhost:8080/r4/StructureMap/$transform?source=http%3A%2F%2Fhl7.org%2Ffhir%2Fcda%2Fmapping%2FCDAMedicationCardDocument' \
+  --url 'http://localhost:8080/r4/StructureMap/$transform?source=http%3A%2F%2Fhl7.org%2Ffhir%2Fcda%2Fmapping%2FCdaChEmedMedicationCardDocumentToBundle' \
   --header 'accept: application/fhir+xml;fhirVersion=4.0' \
   --header 'content-type: application/fhir+xml;fhirVersion=4.0' \
   -d @/Users/oliveregger/Documents/github/hl7ch-cda/projects/eHealthSuisse/eMedikation/v1.0/2-7-MedicationCard.xml > /Users/oliveregger/Documents/github/ch-emed/examples/bundle/2-7-MedicationCard-FHIR.xml
 
-
-  
-### Transform 2-1-MedicationList.xml
-
-POST {{host}}/StructureMap/$transform?source=http://hl7.org/fhir/cda/mapping/CDAMedicationCardDocument
-Accept: application/fhir+xml;fhirVersion=4.0
-Content-Type: application/fhir+xml;fhirVersion=4.0
-
-< ../hl7ch-cda/projects/eHealthSuisse/eMedikation/v1.0/2-1-MedicationList.xml
 
 
 ### Transform ClinicalDocument for CDA
@@ -116,9 +106,21 @@ Content-Type: text/fhir-mapping
 
 < ./maps/BundleToCdaCh.map
 
+
+### BundleToCdaChEmedMedicationCardDocument
+
+
+POST {{host}}/StructureMap HTTP/1.1
+Accept: application/fhir+xml;fhirVersion=4.0
+Content-Type: text/fhir-mapping
+
+< ./maps/BundleToCdaChEmedMedicationCardDocument.map
+
+
+
 ### Transform 2-7-MedicationCard.fhir.xml
 
-POST {{host}}/StructureMap/$transform?source=http://hl7.org/fhir/cda/mapping/BundleToCdaCh
+POST {{host}}/StructureMap/$transform?source=http://hl7.org/fhir/cda/mapping/BundleToCdaChEmedMedicationCardDocument
 Accept: application/fhir+xml;fhirVersion=4.0
 Content-Type: application/fhir+xml;fhirVersion=4.0
 

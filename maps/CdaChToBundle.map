@@ -13,7 +13,6 @@ uses "http://hl7.org/fhir/StructureDefinition/Organization" alias Organization a
 imports "http://hl7.org/fhir/cda/mapping/CdaToFhirTypes"
 imports "http://hl7.org/fhir/cda/mapping/CdaToBundle"
 
-
 group CdaChToBundle(source cda : ClinicalDocument, target bundle : Bundle) {
   cda ->  bundle.entry as e first,  e.resource = create('Composition') as composition share composition, 
              bundle.entry as e2, e2.resource = create('Patient') as patient share patient
@@ -75,6 +74,9 @@ group ObservationMedia(source observationMedia, target binary : Binary) {
     value.mediaType as mediaType -> binary.contentType = mediaType "contentType";
     value -> binary.data = (value.dataBase64Binary) "dataString";
   } "value";
+  observationMedia.languageCode as languageCode then {
+    languageCode.code as lang -> binary.language = lang "lang";
+  } "languageCode";
 }
 
 group SectionOriginalRepresentation(source source : Section, source patient : Patient, target target, target bundle: Bundle) extends ClinicalDocumentSection {

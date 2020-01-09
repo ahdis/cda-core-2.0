@@ -6,6 +6,7 @@ conceptmap "uri2oid" {
 
   s:"http://snomed.info/sct" == t:"2.16.840.1.113883.6.96"
   s:"http://loinc.org" == t:"2.16.840.1.113883.6.1"
+  s:"http://hl7.org/fhir/sid/atc" == t:"2.16.840.1.113883.6.73"
 }
 
 conceptmap "uri2system" {
@@ -14,6 +15,7 @@ conceptmap "uri2system" {
 
   s:"http://snomed.info/sct" == t:"SNOMED CT"
   s:"http://loinc.org" == t:"LOINC"
+  s:"http://hl7.org/fhir/sid/atc" == t:"ATC WHO"
 }
 
 uses "http://hl7.org/fhir/StructureDefinition/Identifier" as source
@@ -79,9 +81,18 @@ group CodeCD(source source : code, target target : CD) extends CodeCS <<types>> 
 
 group CodingCE(source source : Coding, target target : CE) extends Any <<types>> {
     source.code as code -> target.code = code "code";
-    source.system as system -> target.codeSystem = translate(system, '#uri2oid', 'code') "system";
-    source.system as system -> target.codeSystemName = translate(system, '#uri2system', 'code') "systemNane";
+    source.system as system where $this.startsWith('http:') -> target.codeSystem = translate(system, '#uri2oid', 'code') "system";
+    source.system as system where $this.startsWith('urn:oid:') then {
+      source.system as system -> target.codeSystem = (system.substring(8)) "oidident"; 
+    } "system";
+    source.system as system where $this.startsWith('http:') -> target.codeSystemName = translate(system, '#uri2system', 'code') "systemNane";
     source.display as display -> target.displayName = display "display";
+}
+
+group CodeableConceptCE(source source : CodeableConcept, target target : CE) extends Any <<types>> {
+  source.text as text -> target.orginialText as originalText, originalText.data = text;
+  source.coding first as coding then CodingCE(coding, target) "first";
+  source.coding not_first as coding -> target.translation as translation then CodingCE(coding, translation) "translation";
 }
 
 //group CECodeableConcept(source source : CE, target target : CodeableConcept) extends Any <<types>> {
@@ -123,5 +134,16 @@ group HumanNameEN(source source : HumanName, target target : EN) extends Any <<t
 //  source.use as c -> target.use = translate(c, 'http://hl7.org/fhir/ConceptMap/cm-name-use-v3', 'code');
 //  source.validTime -> target.period;
 }
+
+group QuantityPQ(source source : Quantity, target target : PQ) extends Any <<types>> {
+  source.code as code -> target.unit = code;
+  source.value as value -> target.value = value;
+}
+
+group RatioRTOPQPQ(source source : Ratio, target target : RTO_PQ_PQ) extends Any <<types>> {
+  source.numerator as numerator -> target.numerator as targetNumerator then QuantityPQ(numerator, targetNumerator) "numerator";
+  source.denominator as denominator -> target.denominator as targetDenominator then QuantityPQ(denominator, targetDenominator) "denominator"; 
+}
+
 
 
