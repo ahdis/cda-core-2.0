@@ -73,15 +73,6 @@ Content-Type: application/fhir+xml;fhirVersion=4.0
 
 < ../hl7ch-cda/projects/eHealthSuisse/eMedikation/v1.0/2-7-MedicationCard.xml
 
-###
-
-POST {{host}}/StructureMap/$transform?source=http://hl7.org/fhir/cda/mapping/ClinicalDocumentToFHIR
-Accept: application/fhir+xml;fhirVersion=4.0
-Content-Type: application/fhir+xml;fhirVersion=4.0
-
-< /Users/oliveregger/Documents/github/hl7ch-cda/projects/eHealthSuisse/eMedikation/v1.0/2-7-MedicationCard.xml
-
-
 ### FHIR to CDA
 
 POST {{host}}/StructureMap HTTP/1.1

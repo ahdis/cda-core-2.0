@@ -210,7 +210,7 @@ group DosageInstructionsStartStopFrequency(source dosage: Dosage, target substan
 
 // source: http://fhir.ch/ig/ch-emed/StructureDefinition/ch-emed-dosage-structured
 // target: https://art-decor.org/art-decor/decor-templates--ch-pharm-?id=2.16.756.5.30.1.1.10.4.36
-group DosageInstructionsEntryDosageChange(source dosage: Dosage, target entryRelationship : EntryRelationship) {
+group DosageInstructionsEntryDosageChange(source dosage: Dosage, target entryRelationship) {
   dosage.sequence as sequence -> entryRelationship.sequenceNumber as sequenceNumber, sequenceNumber.value = sequence "sequence";
   dosage -> entryRelationship.substanceAdministration as substanceAdministration, 
             substanceAdministration.classCode = 'SBADM',
