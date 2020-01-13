@@ -387,6 +387,41 @@
 		</resource>
 		<resource>
 			<reference>
+				<reference value="StructureDefinition/PharmContent" />
+			</reference>
+		</resource>
+		<resource>
+			<reference>
+				<reference value="StructureDefinition/PharmIngredient" />
+			</reference>
+		</resource>
+		<resource>
+			<reference>
+				<reference value="StructureDefinition/PharmMedicineClass" />
+			</reference>
+		</resource>
+		<resource>
+			<reference>
+				<reference value="StructureDefinition/PharmPackagedMedicine" />
+			</reference>
+		</resource>
+		<resource>
+			<reference>
+				<reference value="StructureDefinition/PharmSpecializedKind" />
+			</reference>
+		</resource>
+		<resource>
+			<reference>
+				<reference value="StructureDefinition/PharmSubstance" />
+			</reference>
+		</resource>
+		<resource>
+			<reference>
+				<reference value="StructureDefinition/PharmSuperContent" />
+			</reference>
+		</resource>
+		<resource>
+			<reference>
 				<reference value="StructureDefinition/PIVL-TS" />
 			</reference>
 		</resource>
