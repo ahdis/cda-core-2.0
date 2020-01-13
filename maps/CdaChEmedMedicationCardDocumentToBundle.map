@@ -12,6 +12,7 @@ uses "http://hl7.org/fhir/cda/StructureDefinition/Author" alias Author as source
 uses "http://hl7.org/fhir/cda/StructureDefinition/CustodianOrganization" alias CustodianOrganization as source
 uses "http://hl7.org/fhir/cda/StructureDefinition/IVL_TS" alias IVL_TS as source
 uses "http://hl7.org/fhir/cda/StructureDefinition/EIVL_TS" alias EIVL_TS as source
+uses "http://hl7.org/fhir/cda/StructureDefinition/Observation" alias Observation as source
 uses "http://hl7.org/fhir/cda/StructureDefinition/PatientRole" alias PatientRole as source
 uses "http://hl7.org/fhir/cda/StructureDefinition/RecordTarget" alias RecordTarget as source
 uses "http://hl7.org/fhir/cda/StructureDefinition/Section" alias Section as source
