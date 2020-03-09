@@ -1,12 +1,12 @@
 <ImplementationGuide xmlns="http://hl7.org/fhir">
-	<id value="hl7.fhir.cda"/>
-	<url value="http://hl7.org/fhir/cda/ImplementationGuide/cda-ig"/>
+	<id value="hl7.fhir.cda" />
+	<url value="http://hl7.org/fhir/cda/ImplementationGuide/cda-ig" />
 	<version value="2.1.0" />
 	<name value="ClinicalDocumentArchitectureV21" />
 	<title value="Clinical Document Architecture V2.1" />
-	<status value="active"/>
-	<experimental value="false"/>
-	<publisher value="Health Level 7"/>
+	<status value="active" />
+	<experimental value="false" />
+	<publisher value="Health Level 7" />
 	<packageId value="hl7.fhir.cda" />
 	<fhirVersion value="4.0.1" />
 	<definition>
@@ -571,22 +571,39 @@
 			</reference>
 		</resource>
 		<page>
-			<nameUrl value="index.html"/>
-			<title value="IG Home Page"/>
-			<generation value="markdown"/>
+			<nameUrl value="index.html" />
+			<title value="IG Home Page" />
+			<generation value="markdown" />
 			<page>
-				<nameUrl value="downloads.html"/>
-				<title value="Downloads"/>
-				<generation value="markdown"/>
+				<nameUrl value="downloads.html" />
+				<title value="Downloads" />
+				<generation value="markdown" />
 			</page>
 		</page>
 		<parameter>
+			<code value="generate-json" />
+			<value value="true" />
+		</parameter>
+		<parameter>
+			<code value="generate-xml" />
+			<value value="true" />
+		</parameter>
+		<parameter>
+			<code value="generate-turtle" />
+			<value value="false" />
+		</parameter>
+		<parameter>
 			<code value="releaselabel" />
-			<value value="CI Build" />
+			<value value="CI build" />
+			<!--<value value="STU Ballot" /> -->
+		</parameter>
+		<parameter>
+			<code value="path-pages" />
+			<value value="input/pagecontent" />
 		</parameter>
 		<parameter>
 			<code value="copyrightyear" />
-			<value value="2019+" />
+			<value value="2020+" />
 		</parameter>
 	</definition>
 </ImplementationGuide>
