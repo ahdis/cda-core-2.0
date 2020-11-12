@@ -7,13 +7,15 @@ After completing this tutorial, you will be able to:
 - Apply FHIRPath expressions to a CDA Document
 - Transform CDA to FHIR with the FHIR Mapping Language
 
-Requirements
+Requirements [slides](setup.pdf)
 1. Set up Visual Studio Code
 2. Install REST Client Extension for Visual Studio Code
 3. Install FHIR tools Extension for Visual Studio Code
 4. Java Runtime for running HL7 Java Validator and IG Publisher 
 5. Visual Studio Code: Open Command Palette (Windows:Ctrl+Shift+P, OSX: Command+Shit+P): FHIR update Java IG validator and publiser
 5. Open Terminal / Command Prompt and change into that folder
+
+
 
 ## Validate a CDA document
 
