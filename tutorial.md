@@ -15,7 +15,16 @@ Requirements [slides](setup.pdf)
 5. Visual Studio Code: Open Command Palette (Windows:Ctrl+Shift+P, OSX: Command+Shit+P): FHIR update Java IG validator and publiser
 5. Open Terminal / Command Prompt and change into that folder
 
+## ATTENTION
 
+Due to the HAPI - release the download link to the validator is currently broken (and VS Code cannot install it), 
+download the validator from here: https://github.com/hapifhir/org.hl7.fhir.core/releases/download/5.1.22/validator_cli.jar
+
+If want to use it within VS Code, copy the jar to https://github.com/hapifhir/org.hl7.fhir.core/releases/download/5.1.22/validator_cli.jar
+to the extensions directory:
+
+OSX:
+cp ~/Downloads/validator_cli.jar ~/.vscode/extensions/yannick-lagger.vscode-fhir-tools-1.4.0/ 
 
 ## Validate a CDA document
 
